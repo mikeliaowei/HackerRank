@@ -16,6 +16,211 @@ namespace LinkedListStructure
 			this.next = next;
 		}
 
+		/*
+		 * Leetcode 876 Middle of the Linked List
+		 * 
+		 */
+		public ListNode MiddleNode(ListNode head)
+		{
+			List<ListNode> lst = new List<ListNode>();
+
+			while (head != null)
+			{
+				lst.Add(head);
+				head = head.next;
+			}
+
+			//Get middle index
+			int index = lst.Count / 2 + 1;
+			//Console.WriteLine("index = " + index);
+
+			return lst.ElementAt(index - 1);
+
+		}
+
+		/*
+		 *Leetcode 234 Palindrome Linked List
+		 * 
+		 * 
+		 */
+		public bool IsPalindrome(ListNode head)
+		{
+			List<int> vals = new List<int>();
+
+			// Convert LinkedList into ArrayList.
+			ListNode currentNode = head;
+			while (currentNode != null)
+			{
+				vals.Add(currentNode.val);
+				currentNode = currentNode.next;
+			}
+
+			// Use two-pointer technique to check for palindrome.
+			int front = 0;
+			int back = vals.Count - 1;
+			while (front < back)
+			{
+				// Note that we must use ! .equals instead of !=
+				// because we are comparing Integer, not int.
+				if (!vals.ElementAt(front).Equals(vals.ElementAt(back)))
+				{
+					return false;
+				}
+				front++;
+				back--;
+			}
+			return true;
+		}
+
+		/*
+		 * Leetcode 160 intersection of Two linked lists
+		 * 
+		 * Given the heads of two singly linked-lists headA and headB, return the node at which the two lists intersect. 
+		 * If the two linked lists have no intersection at all, return null.
+		 */
+		public ListNode GetIntersectionNode(ListNode headA, ListNode headB)
+		{
+			ListNode a = headA,
+					 b = headB;
+
+			while (a != b)
+			{
+				a = a == null ? headB : a.next;
+				b = b == null ? headA : b.next;
+			}
+
+			return a;
+		}
+
+
+
+		/*
+		 * Leetcode 141 Linked List cycle
+		 * Given head, the head of a linked list, determine if the linked list has a cycle in it.
+		 */
+		public bool HasCycle(ListNode head)
+		{
+			Dictionary<ListNode, int> dic = new Dictionary<ListNode, int>();
+
+			if (head != null && head.next == null) return false;
+
+			bool hasCycle = false;
+
+			while (head != null)
+			{
+
+				if (!dic.ContainsKey(head))
+				{
+					dic.Add(head, 1);
+				}
+				else
+				{
+					hasCycle = true;
+					break;
+				}
+
+				head = head.next;
+			}
+
+			return hasCycle;
+
+		}
+
+		/*
+		 * Leetcode 206 Reverse Linked List
+		 * Given the head of a singly linked list, reverse the list, and return the reversed list.
+		 * 
+		 */
+		public ListNode ReverseList(ListNode head)
+		{
+			ListNode pres = null, current = head, next = null;
+
+			while(current != null)
+			{
+				next = current.next;
+				current.next = pres;
+				pres = current;
+				current = next;
+
+			}
+
+			return pres;
+		}
+
+		/* 19. Remove Nth Node From End of List
+		 * 
+		 * Given the head of a linked list, remove the nth node from the end of the list and return its head.
+		 */
+		public ListNode RemoveNthFromEnd(ListNode head, int n)
+		{
+			int length = 0;
+
+			ListNode dummy = new ListNode(0);
+			dummy.next = head;
+
+			ListNode first = head;
+
+			while (first != null)
+			{
+				length += 1;
+				first = first.next;
+			}
+
+			length = length - n;
+
+			first = dummy;
+
+			while (length > 0)
+			{
+				length--;
+
+				first = first.next;
+			}
+
+			first.next = first.next.next;
+
+			return dummy.next;
+
+		}
+
+
+
+		public static ListNode RotateRight(ListNode head, int k)
+		{
+			if (head == null) return null;
+			if (head.next == null || k == 0) return head;
+
+
+			ListNode last = head;
+			ListNode pre = null;
+
+			while (k % 100 == 0)
+			{
+				k = k / 100;
+			}
+
+			while (k > 0)
+			{
+
+				while (last.next != null)
+				{
+					pre = last;
+					//Console.WriteLine("Pre = " +pre.val);
+					last = last.next;
+					//Console.WriteLine("last = " +last.val);
+				}
+
+				pre.next = null;
+				last.next = head;
+				head = last;
+
+				k--;
+			}
+
+			return head;
+
+		}
+
 		public static ListNode AddTwoNumbers(ListNode l1, ListNode l2)
 		{
 			int carry = 0;
@@ -146,17 +351,18 @@ namespace LinkedListStructure
 		public static ListNode<int> removeKFromList(ListNode<int> head, int k)
 		{
 			var dummy = new ListNode<int>();
-			var cur = dummy;
+			var current = dummy;
 			while (head != null)
 			{
 				if (head.value != k)
 				{
-					cur.next = head;
-					cur = cur.next;
+					current.next = head;
+					current = current.next;
 				}
 				head = head.next;
 			}
-			cur.next = null;
+			current.next = null;
+			
 			return dummy.next;
 		}
 
@@ -171,6 +377,24 @@ namespace LinkedListStructure
 				return l.next;
 			else
 				return l;
+		}
+
+		public static ListNode<int> removeFromList(ListNode<int> head, int target)
+		{
+			ListNode<int> travel1 = head, travel2 = head;
+
+			while (travel2 != null)
+			{
+				if(travel2.value == target)
+				{
+					travel1.next = travel2.next;
+				}
+
+				travel1 = travel2;
+				travel2 = travel2.next;
+			}
+
+			return head;
 		}
 
 		public static ListNode<int> addTwoHugeNumbers(ListNode<int> a, ListNode<int> b)

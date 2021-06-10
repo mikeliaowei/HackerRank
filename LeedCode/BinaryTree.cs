@@ -20,6 +20,101 @@ namespace TreeStructure
 			_root = null;
 		}
 
+		
+
+		TreeNode<int> deleteFromBST(TreeNode<int> t, int[] queries)
+		{
+
+			foreach (var i in queries) t = deleteFromBSTSingle(t, i);
+			return t;
+		}
+
+		TreeNode<int> deleteFromBSTSingle(TreeNode<int> root, int key)
+		{
+			if (root == null) return root;
+			
+			if (root.value == key)
+			{
+				if (root.left != null)
+				{
+					var ch = getRightChild(root.left, root);
+					ch.left = root.left;
+					ch.right = root.right;
+					return ch;
+				}
+				else
+				{
+					return root.right;
+				}
+			}
+			else
+			{
+				if (root.value > key)
+				{
+					root.left = deleteFromBSTSingle(root.left, key);
+				}
+				else
+				{
+					root.right = deleteFromBSTSingle(root.right, key);
+				}
+
+				return root;
+			}
+		}
+
+		TreeNode<int> getRightChild(TreeNode<int> subtree, TreeNode<int> parent)
+		{
+			if (subtree.right == null)
+			{
+				if (parent.right == subtree) parent.right = subtree.left;
+				else if (parent.left == subtree) parent.left = subtree.left;
+				return subtree;
+			}
+			return getRightChild(subtree.right, subtree);
+		}
+
+		public TreeNode<int> restoreBinaryTree(int[] inorder, int[] preorder)
+		{
+			return buildTree(inorder, preorder, 0, inorder.Length - 1);
+		}
+
+		int count = 0;
+
+		TreeNode<int> buildTree(int[] inorder, int[] preorder, int inStart, int inEnd)
+		{
+			if (inStart > inEnd)
+			{
+				return null;
+			}
+
+			TreeNode<int> node = new TreeNode<int>();
+			node.value = preorder[count];
+			count += 1;
+
+			if (inStart == inEnd)
+			{
+				return node;
+			}
+
+			int inIndex = Search(inorder, inStart, inEnd, node.value);
+
+			node.left = buildTree(inorder, preorder, inStart, inIndex - 1);
+			node.right = buildTree(inorder, preorder, inIndex + 1, inEnd);
+			return node;
+		}
+
+		int Search(int[] arr, int start, int end, int target)
+		{
+			for (var i = start; i <= end; i++)
+			{
+				if (arr[i] == target)
+				{
+					return i;
+				}
+			}
+			return 0;
+		}
+
 		/*
 		 * 108. Convert Sorted Array to Binary Search Tree
 		 * 
@@ -110,9 +205,45 @@ namespace TreeStructure
 				if (stack.Count != 0)
 				{
 					currentNode = stack.Pop();
-					if (currentNode.val != null) result.Add(Int32.Parse(currentNode.val.ToString()));
+					result.Add(Int32.Parse(currentNode.val.ToString()));
 					currentNode = currentNode.right;
 				}
+			}
+
+			return result;
+		}
+
+		/*
+		 * Leetcode 144 Binary Tree Preorder Traversal
+		 * 
+		 * 
+		 */
+		public IList<int> PreorderTraversal(TreeNode root)
+		{
+
+			List<int> result = new List<int>();
+
+			if (root == null) return result;
+
+			Stack<TreeNode> nodeStack = new Stack<TreeNode>();
+
+			nodeStack.Push(root);
+
+			while (nodeStack.Count > 0)
+			{
+				TreeNode node = nodeStack.Pop();
+				result.Add(node.val);
+
+				if (node.right != null)
+				{
+					nodeStack.Push(node.right);
+				}
+
+				if (node.left != null)
+				{
+					nodeStack.Push(node.left);
+				}
+
 			}
 
 			return result;
@@ -240,5 +371,37 @@ namespace TreeStructure
 			if (p == null || q == null) return false;
 			return p.val == q.val && IsMirror(p.left, q.right) && IsMirror(p.right, q.left);
 		}
+
+		/// <summary>
+		/// Breadth First Search traversal.
+		/// </summary>
+		/// <returns>Returns the tree data in BFS order</returns>
+		public List<int> BFS(TreeNode<int> root)
+		{
+			// If tree is empty, return null
+			if (root == null)
+				return null;
+
+			List<int> bfsData = new List<int>();
+			Queue<TreeNode<int>> visited = new Queue<TreeNode<int>>();
+			visited.Enqueue(root);
+
+			TreeNode<int> currentNode = root;
+			while (visited.Count > 0)
+			{
+				currentNode = visited.Dequeue();
+				bfsData.Add(currentNode.value);
+
+				// Add the left node and right node to the queue
+				if (currentNode.left != null)
+					visited.Enqueue(currentNode.left);
+				if (currentNode.right != null)
+					visited.Enqueue(currentNode.right);
+			}
+
+
+			return bfsData;
+		}
+
 	}
 }
