@@ -6,11 +6,61 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using RunningSumArray;
+using System.Security.Cryptography;
+using System.Diagnostics;
+using static RunningSumArray.SamplesDelegate;
 
 namespace LeedCodeTest
 {
 	public class Program
 	{
+		/*
+		 * 
+		 * Leetcode 273: Integer to English word
+		 * Input: num = 123
+		 * Output: "One Hundred Twenty Three"
+		 * 
+		 * 
+		 */
+		private static string[] LessThan20 = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven",
+								   "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
+		private static string[] Tens = { "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
+		private static string[] Thousands = { "", "Thousand", "Million", "Billion" };
+
+		public static string NumberToWords(int num)
+		{
+
+			if (num == 0)
+				return "Zero";
+
+			int i = 0; // point to Thousands
+			string res = "";
+			while (num > 0)
+			{
+				if (num % 1000 != 0)
+				{
+					res = Helper(num % 1000) + Thousands[i] + " " + res;
+				}
+
+				num /= 1000;
+				i++;
+			}
+
+			return res.Trim();
+		}
+
+		private static string Helper(int num)
+		{
+			if (num == 0)
+				return "";
+			else if (num < 20)
+				return LessThan20[num] + " ";
+			else if (num < 100)
+				return Tens[num / 10] + " " + Helper(num % 10);
+			else
+				return LessThan20[num / 100] + " Hundred " + Helper(num % 100);
+		}
+
 
 		public static void convert_to_words(char[] num)
 		{
@@ -127,6 +177,48 @@ namespace LeedCodeTest
 				}
 				++x;
 			}
+		}
+
+		/*
+		 * Leetcode 41: First Missing Positive
+		 * Given an unsorted integer array nums, find the smallest missing positive integer.
+		 * You must implement an algorithm that runs in O(n) time and uses constant extra space.
+		 * Input: nums = [3,4,-1,1]
+		 * Output: 2
+		 */
+		public static int FirstMissingPositive(int[] A)
+		{
+
+			int len = A.Length;
+
+			for (int i = 0; i < len; i++)
+			{
+				if (A[i] < 0)
+					A[i] = 0;
+			}
+
+
+			for (int i = 0; i < len; i++)
+			{
+				int val = Math.Abs(A[i]);
+				if (val >= 1 && val <= len)
+				{
+
+					if (A[val - 1] > 0)
+						A[val - 1] *= -1;
+					else if (A[val - 1] == 0)
+						A[val - 1] = -1 * (len + 1);
+
+				}
+			}
+
+			for (int i = 1; i < len + 1; i++)
+			{
+				if (A[i - 1] >= 0)
+					return i;
+			}
+
+			return len + 1;
 		}
 
 		/* Leetcode 70 
@@ -544,6 +636,87 @@ namespace LeedCodeTest
 			return res;
 		}
 
+		/*
+		 * Leetcode 33: Search in Rotated Sorted Array
+		 * Input: nums = [4,5,6,7,0,1,2], target = 0
+		 * Output: 4
+		 */
+		public static int Search(int[] nums, int target)
+		{
+
+			int l = 0, r = nums.Length - 1;
+
+			while (l <= r)
+			{
+				int mid = (l + r) / 2;
+				if (target == nums[mid])
+					return mid;
+
+				if (nums[l] <= nums[mid])
+				{
+					if (target > nums[mid] || target < nums[l])
+						l = mid + 1;
+					else
+						r = mid - 1;
+				}
+				else
+				{
+					if (target < nums[mid] || target > nums[r])
+						r = mid - 1;
+					else
+						l = mid + 1;
+				}
+					
+			}
+
+			return -1;
+
+		}
+
+		/*
+		 * Leetcode 34: Find First and Last Position of Element in Sorted Array
+		 * Given an array of integers nums sorted in ascending order, find the starting and ending position of a given target value.
+		 * Input: nums = [5,7,7,8,8,10], target = 8
+		 * Output: [3,4]
+		 */
+		public int[] SearchRange(int[] nums, int target)
+		{
+
+			int left = binSearch(nums, target, true);
+			int right = binSearch(nums, target, false);
+
+			return new int[] { left, right };
+
+		}
+
+		//leftBias=[true/false], if false, res is rightBiased
+		int binSearch(int[] nums, int target, bool leftBias)
+		{
+
+			int l = 0, r = nums.Length - 1, i = -1;
+
+			while (l <= r)
+			{
+				int m = (l + r) / 2;
+
+				if (target > nums[m])
+					l = m + 1;
+				else if (target < nums[m])
+					r = m - 1;
+				else
+				{
+					i = m;
+					if (leftBias)
+						r = m - 1;
+					else
+						l = m + 1;
+				}
+
+			}
+
+			return i;
+		}
+
 		public static int SearchInsert(int[] nums, int target)
 		{
 			int inserti = 0;
@@ -748,6 +921,130 @@ namespace LeedCodeTest
 			return maxSubstringLength;
 		}
 
+		public static IList<IList<int>> FourSum(int[] nums, int target)
+		{
+
+			Array.Sort(nums);
+
+			List<IList<int>> res = new List<IList<int>>();
+
+			for (int i = 0; i < nums.Length - 1; i++)
+			{
+
+				List<IList<int>> threeSum = ThreeSum(nums, target - nums[i], i + 1).ToList();
+
+				foreach(List<int> lst in threeSum)
+				{
+					lst.Add(nums[i]);
+					lst.Sort();
+					res.Add(lst);
+				}
+
+			}
+
+			List<IList<int>>  dist = 
+				res.Select(o =>
+				{
+					var t = o.OrderBy(x => x).Select(i => i.ToString());
+					return new { Key = string.Join("", t), List = o };
+				})
+				.GroupBy(o => o.Key)
+				.Select(o => o.FirstOrDefault())
+				.Select(o => o.List)
+				.ToList();
+
+			return dist;
+
+		}
+
+
+		public static IList<IList<int>> ThreeSum(int[] nums, int target, int starti)
+		{
+
+			List<IList<int>> res = new List<IList<int>>();
+
+			Array.Sort(nums);
+
+			for (int i = starti; i < nums.Length; i++)
+			{
+
+				int l = i + 1, r = nums.Length - 1;
+
+				while (l < r)
+				{
+					int threesum = nums[i] + nums[l] + nums[r];
+
+					if (threesum > target)
+					{
+						r--;
+					}
+					else if (threesum < target)
+					{
+						l++;
+					}
+					else
+					{
+
+						res.Add(new List<int>() { nums[i], nums[l], nums[r] });
+
+						l++;
+
+						while (l < r && nums[l] == nums[l - 1])
+							l++;
+					}
+				}
+			}
+
+			return res;
+
+		}
+
+		/*
+		 * Leetcode 15: three sum
+		 * Input: nums = [-1,0,1,2,-1,-4]
+		 * Output: [[-1,-1,2],[-1,0,1]]
+		 */
+		public static IList<IList<int>> ThreeSum(int[] nums)
+		{
+
+			Array.Sort(nums);  //O(nlogn)
+
+			List<IList<int>> res = new List<IList<int>>();
+
+			for (int i = 0; i < nums.Length; i++)
+			{
+
+				if (i > 0 && nums[i] == nums[i - 1])
+					continue;
+
+				int l = i + 1, r = nums.Length - 1;
+
+				while (l < r)
+				{
+
+					int threesum = nums[i] + nums[l] + nums[r];
+
+					if (threesum > 0)
+						r--;
+					else if (threesum < 0)
+						l++;
+					else
+					{
+						res.Add(new List<int> { nums[i], nums[l], nums[r] });
+						l++;
+						while (nums[l] == nums[l - 1] && l < r)
+							l++;
+					}
+
+
+				}
+
+			}
+
+			return res;
+
+		}
+
 
 		/*Leetcode 16: 3 Sum Closest
 		 * 
@@ -770,12 +1067,12 @@ namespace LeedCodeTest
 
 			for (int i = 0; i < len && diff != 0; i++)
 			{
-				int j = i + 1, k = len - 1;
+				int left = i + 1, right = len - 1;
 
-				while (j < k)
+				while (left < right)
 				{
 
-					int sum = nums[i] + nums[j] + nums[k];
+					int sum = nums[i] + nums[left] + nums[right];
 
 					if (Math.Abs(target - sum) < Math.Abs(diff))
 					{
@@ -783,9 +1080,9 @@ namespace LeedCodeTest
 					}
 
 					if (sum < target)
-						++j;
+						++left;
 					else
-						--k;
+						--right;
 
 				}
 
@@ -795,6 +1092,43 @@ namespace LeedCodeTest
 
 		}
 
+		/*
+		 * Leetcode 75: sort colors
+		 * 
+		 * Input: nums = [2,0,2,1,1,0]
+		 * Output: [0,0,1,1,2,2]
+		 */
+		public void SortColors(int[] nums)
+		{
+
+			int l = 0, r = nums.Length - 1, i = 0;
+
+			while (i <= r)
+			{
+
+				if (nums[i] == 0)
+				{
+					swap(l, i);
+					l++;
+				}
+				else if (nums[i] == 2)
+				{
+					swap(i, r);
+					r--;
+					i--;
+				}
+
+				i++;
+			}
+
+			void swap(int j, int k)
+			{
+				int temp = nums[j];
+				nums[j] = nums[k];
+				nums[k] = temp;
+			}
+
+		}
 
 		public static long countDecreasingSubarrays(int[] arr)
 		{
@@ -929,6 +1263,47 @@ namespace LeedCodeTest
 		}
 
 		/*
+		 * Leetcode 647: Palindromic Substrings
+		 * Given a string s, return the number of palindromic substrings in it.
+		 * Input: s = "abc"
+		 * Output: 3
+		 * Explanation: Three palindromic strings: "a", "b", "c".
+		 */
+		public int CountPalindromeSubstrings(string s)
+		{
+
+			int len = s.Length;
+			int right = 0, left = 0, res = 0;
+
+			for (int i = 0; i < len; i++)
+			{
+
+				//odd item
+				left = i;
+				right = i;
+				while (left >= 0 && right < len && s[left] == s[right])
+				{
+					res++;
+					left--;
+					right++;
+				}
+
+				//even item
+				left = i;
+				right = i + 1;
+				while (left >= 0 && right < len && s[left] == s[right])
+				{
+					res++;
+					left--;
+					right++;
+				}
+
+			}
+
+			return res;
+		}
+
+		/*
 		 * Leedcod 119
 		 * Pascal's triangle
 		 * Given an integer rowIndex, return the rowIndexth (0-indexed) row of the Pascal's triangle.
@@ -961,6 +1336,35 @@ namespace LeedCodeTest
 			return results[rowIndex];
 		}
 
+		/*
+		 * Leetcode 442: find all duplicates in an array
+		 * 
+		 * 
+		 */
+		public IList<int> FindDuplicates(int[] nums)
+		{
+			int len = nums.Length;
+
+			Array.Sort(nums);
+
+			HashSet<int> res = new HashSet<int>();
+
+			int i = 0;
+
+			while (i + 1 < len)
+			{
+
+				if (nums[i] == nums[i + 1])
+				{
+					res.Add(nums[i]);
+				}
+
+				i++;
+			}
+
+
+			return res.ToList();
+		}
 
 		/*
 		 * Leedcode 509
@@ -989,6 +1393,36 @@ namespace LeedCodeTest
 
 		}
 
+		public static int combinatonsOfTwoNumber(int[] nums, int target)
+		{
+			int res = 0;
+			LinkedList<int> comb = new LinkedList<int>();
+
+			backtrackcombinatonsOfTwoNumber(1, nums, ref res, comb, target);
+
+
+			return res;
+		}
+
+		private static void backtrackcombinatonsOfTwoNumber(int index, int[] nums, ref int results, LinkedList<int> permutation, int target)
+		{
+			string str = string.Join("", permutation.ToList());
+			if (!string.IsNullOrEmpty(str)&& Int16.Parse(str) > target)
+			{
+				results = Int16.Parse(str);
+				return;
+			}
+
+			//make a choice
+			permutation.AddLast(index % 2 != 0 ? nums[0] : nums[1]);
+
+			backtrackcombinatonsOfTwoNumber(index+1, nums, ref results, permutation, target);
+
+			//undo the choice
+			permutation.RemoveLast();
+
+		}
+
 
 		public static int MaxProfitSum(int[] prices)
 		{
@@ -1012,15 +1446,15 @@ namespace LeedCodeTest
 
 		}
 
-			/*Leetcode 1027 Longest Arithmetic Subsequence
-			 * Given an array nums of integers, return the length of the longest arithmetic subsequence in nums.
-			 * Input: nums = [20,1,15,3,10,5,8]
-				Output: 4
-				Explanation: 
-				The longest arithmetic subsequence is [20,15,10,5].
-			 * 
-			 */
-			public static int longestArithmeticSeqLength(int[] A)
+		/*Leetcode 1027 Longest Arithmetic Subsequence
+		 * Given an array nums of integers, return the length of the longest arithmetic subsequence in nums.
+		 * Input: nums = [20,1,15,3,10,5,8]
+			Output: 4
+			Explanation: 
+			The longest arithmetic subsequence is [20,15,10,5].
+		 * 
+		 */
+		public static int longestArithmeticSeqLength(int[] A)
 		{
 			Dictionary<int, int>[] differences = new Dictionary<int, int>[A.Length];
 
@@ -1313,12 +1747,7 @@ namespace LeedCodeTest
 
 			for (var i = 0; i < s.Length; i++)
 			{
-				if (i == 0)
-				{
-					counter += dictionary[s[i]];
-					continue;
-				}
-				if (dictionary[s[i - 1]] >= dictionary[s[i]])
+				if (i == 0 || dictionary[s[i - 1]] >= dictionary[s[i]])
 				{
 					// keep going
 					counter += dictionary[s[i]];
@@ -1341,7 +1770,86 @@ namespace LeedCodeTest
 
 		}
 
+
+		/*
+		 * Leetcode 53: Given an integer array nums, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.
+		 * 
+		 * O(nxn)
+		 */
 		public static int MaxSubArray(int[] nums)
+		{
+			int maxSubarray = Int16.MinValue;
+			for (int i = 0; i < nums.Length; i++)
+			{
+				int currentSubarray = 0;
+				for (int j = i; j < nums.Length; j++)
+				{
+					currentSubarray += nums[j];
+					maxSubarray = Math.Max(maxSubarray, currentSubarray);
+				}
+			}
+
+			return maxSubarray;
+		}
+
+		/*
+		 * Docusign interview
+		 * 
+		 */
+		public static int maximumSubArrayK(int[] nums, int k)
+		{
+			int max = Int16.MinValue;
+
+			for (int i = 0; i < nums.Length; i++)
+			{
+				int sum = 0;
+				int counter = 0;
+				int index = i;
+				while (counter < k && index < nums.Length)
+				{
+					sum += nums[index];
+					index++;
+					counter++;
+				}
+
+				max = Math.Max(max, sum);
+
+			}
+
+			return max;
+		}
+
+		/*
+		 * O(n)
+		 */
+		public static int maximumSubArrayK2(int[] nums, int k)
+		{
+			int max = Int16.MinValue;
+			int sum = 0, counter = 0;
+
+			for (int i = 0; i < nums.Length; i++)
+			{
+				if(counter < 3)
+				{
+					sum += nums[i];
+				}
+				else
+				{
+					sum = sum - nums[i - k] + nums[i];
+				}
+
+				max = Math.Max(max, sum);
+
+				counter++;
+			}
+
+			return max;
+		}
+
+		/**
+		 * O(n)
+		 */
+		public static int MaxSubArrayII(int[] nums)
 		{
 			var prevSum = nums[0];
 			int maxSum = nums[0];
@@ -1354,10 +1862,125 @@ namespace LeedCodeTest
 			return maxSum;
 		}
 
+		/*
+		 * Leetcode 560: Subarray Sum Equals K
+		 * 
+		 * 
+		 */
+		public int SubarraySum(int[] nums, int k)
+		{
+
+			int res = 0;
+
+			for (int i = 0; i < nums.Length; i++)
+			{
+
+				int j = i;
+				int sum = 0;
+				while (j < nums.Length)
+				{
+					sum += nums[j];
+
+					if (sum == k)
+					{
+						res++;
+					}
+
+					j++;
+				}
+
+			}
+
+			return res;
+
+		}
+
+		public static int SubarraySumII(int[] nums, int k)
+		{
+
+			int res = 0, curSum = 0;
+
+			Dictionary<int, int> prefixSums = new Dictionary<int, int>();
+			prefixSums.Add(0, 1);
+
+			foreach (int n in nums)
+			{
+
+				curSum += n;
+
+				int diff = curSum - k;
+
+				res += prefixSums.ContainsKey(diff) ? prefixSums[diff] : 0;
+
+				prefixSums[curSum] = 1 + (prefixSums.ContainsKey(curSum) ? prefixSums[curSum] : 0);
+
+			}
+
+			return res;
+
+		}
+
+
+		/*
+		 * Leetcode 2: Two Sum
+		 * iven an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
+		 * Input: nums = [2,7,11,15], target = 9
+		 * Output: [0,1]
+		 * Output: Because nums[0] + nums[1] == 9, we return [0, 1].
+		 */
+		public static int[] TwoSum(int[] nums, int target)
+		{
+
+			Dictionary<int, int> prevMap = new Dictionary<int, int>();
+			int[] res = new int[2];
+
+			for (int i = 0; i < nums.Length; i++)
+			{
+				int diff = target - nums[i];
+				if (prevMap.ContainsKey(diff))
+				{
+					res = new int[] { prevMap[diff], i };
+				}
+				else
+				{
+					prevMap.Add(nums[i], i);
+				}
+
+			}
+
+			return res;
+		}
+
+		/* Leetcode 1344: Given two numbers, hour and minutes. 
+		 * Return the smaller angle (in degrees) formed between the hour and the minute hand.
+		 * 
+		 * 
+		 */
+		public static double AngleClock(int hour, int minutes)
+		{
+			int oneMinAngle = 6;
+			int oneHourAngle = 30;
+
+			double minutesAngle = oneMinAngle * minutes;
+			double hourAngle = (hour % 12 + minutes / 60.0) * oneHourAngle;
+
+			double diff = Math.Abs(hourAngle - minutesAngle);
+			return Math.Min(diff, 360 - diff);
+		}
+
+		/*
+		 * Leetcode 121: Best Time to Buy and Sell Stock
+		 * 
+		 * Input: prices = [7,1,5,3,6,4]
+		 * Output: 5
+		 * 
+		 */
 		public static int MaxProfit(int[] prices)
 		{
 			var n = prices.Length;
+
 			if (n == 0) return 0;
+
 			var globalMaxProfit = 0;
 			var globalMin = prices[0];
 			for (int i = 1; i < n; i++)
@@ -1540,6 +2163,7 @@ namespace LeedCodeTest
 			return sb.ToString();
 		}
 
+
 		/*
 		 * Leetcode 198: House robber
 		 * 
@@ -1565,6 +2189,400 @@ namespace LeedCodeTest
 			}
 
 			return rob2;
+		}
+
+		/*
+		 * Leetcode 213: House robber 2
+		 * Input: nums = [2,3,2]
+		 * Output: 3
+		 * Explanation: You cannot rob house 1 (money = 2) and then rob house 3 (money = 2), because they are adjacent houses.
+		 */
+		public int Rob(int[] nums)
+		{
+
+			return Math.Max(nums[0],
+							 Math.Max(robber(new List<int>(nums).GetRange(1, nums.Length - 1).ToArray()),
+									  robber(new List<int>(nums).GetRange(0, nums.Length - 1).ToArray()))
+						   );
+
+		}
+
+
+		/*
+		 * Leetcode 200: number of islands
+		 * Given an m x n 2D binary grid grid which represents a map of '1's (land) and '0's (water), return the number of islands.
+		 * An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically.
+		 * You may assume all four edges of the grid are all surrounded by water.
+		 */
+		public int NumIslands(char[][] grid)
+		{
+			if (grid.Length == 0)
+				return 0;
+
+			int rows = grid.Length, cols = grid[0].Length;
+			bool[,] visit = new bool[rows, cols];
+
+
+			int islands = 0;
+
+			for (int r = 0; r < rows; r++)
+			{
+
+				for (int c = 0; c < cols; c++)
+				{
+
+					if (grid[r][c] == '1' && visit[r, c] == false)
+					{
+
+						islands += 1;
+						dfs(r, c, grid, visit);
+
+					}
+				}
+
+			}
+
+			return islands;
+
+		}
+
+		public void dfs(int r, int c, char[][] grid, bool[,] visited)
+		{
+
+			visited[r, c] = true;
+
+			if (r - 1 >= 0 && !visited[r - 1, c] && grid[r - 1][c] != '0')
+				dfs(r - 1, c, grid, visited);
+			if (r + 1 < grid.Length && !visited[r + 1, c] && grid[r + 1][c] != '0')
+				dfs(r + 1, c, grid, visited);
+			if (c - 1 >= 0 && !visited[r, c - 1] && grid[r][c - 1] != '0')
+				dfs(r, c - 1, grid, visited);
+			if (c + 1 < grid[0].Length && !visited[r, c + 1] && grid[r][c + 1] != '0')
+				dfs(r, c + 1, grid, visited);
+
+		}
+
+
+		public static int NumIslands2(char[][] grid)
+		{
+			if (grid == null)
+				return 0;
+
+			int rows = grid.Length, cols = grid[0].Length;
+			bool[,] visit = new bool[rows, cols];
+			int islands = 0;
+
+			for (int i = 0; i < rows; i++)
+			{
+
+				for (int j = 0; j < cols; j++)
+				{
+
+					if (grid[i][j] == '1' && visit[i, j] == false)
+					{
+						bfs(i, j);
+						islands++;
+					}
+				}
+			}
+
+			void bfs(int r, int c)
+			{
+				Queue<int[]> q = new Queue<int[]>();
+				visit[r, c] = true;
+
+				q.Enqueue(new int[] { r, c });
+
+				while (q.Count > 0)
+				{
+					int[] temp = q.Dequeue();
+					int row = temp[0], col = temp[1];
+					int[][] directions = new int[][] {
+									new int[] { 1,0 },
+									new int[] { -1,0},
+									new int[] { 0,1},
+									new int[] { 0,-1}
+					};
+
+					foreach (int[] item in directions)
+					{
+						r = row + item[0];
+						c = col + item[1];
+
+						if (Enumerable.Range(0, rows).Contains(r)
+						  && Enumerable.Range(0, cols).Contains(c)
+						   && grid[r][c] == '1'
+						   && visit[r, c] == false
+						  )
+						{
+							q.Enqueue(new int[] { r, c });
+							visit[r, c] = true;
+						}
+					}
+				}
+			}
+
+			return islands;
+
+		}
+
+		/*
+		 * Leetcode 695: Max Area of island
+		 * You are given an m x n binary matrix grid. An island is a group of 1's (representing land) connected 4-directionally (horizontal or vertical.) 
+		 * You may assume all four edges of the grid are surrounded by water.
+		 * 
+		 */
+		public int MaxAreaOfIsland(int[][] grid)
+		{
+
+			bool[,] seen = new bool[grid.Length, grid[0].Length];
+			int ans = 0;
+			for (int r = 0; r < grid.Length; r++)
+			{
+				for (int c = 0; c < grid[0].Length; c++)
+				{
+					ans = Math.Max(ans, area(r, c, grid, seen));
+				}
+			}
+			return ans;
+		}
+
+		public int area(int r, int c, int[][] grid, bool[,] seen)
+		{
+			if (r < 0 || r >= grid.Length
+				|| c < 0 || c >= grid[0].Length
+				|| seen[r, c]
+				|| grid[r][c] == 0)
+				return 0;
+
+			seen[r, c] = true;
+
+			return (1 + area(r + 1, c, grid, seen) + area(r - 1, c, grid, seen)
+					  + area(r, c - 1, grid, seen) + area(r, c + 1, grid, seen));
+		}
+
+		/*
+		 * Leetcode 204: count primes
+		 *  In math, prime numbers are whole numbers greater than 1, that have only two factors – 1 and the number itself
+		 *  For example, 5 is prime because the only ways of writing it as a product, 1 × 5 or 5 × 1
+		 */
+		public int CountPrimes(int n)
+		{
+			// Because 1 or 2 contains 0 prime
+			if (n < 3) return 0;
+
+			// The idea of Sieve of Eratosthenes is multiplies of a prime number are not prime numbers.
+			// For example, 2 is a prime number, so 2*2, 2*3, 2*4,... are not primes.       
+			// Define an array and initialize every number (indexes of the array) as true to assume every number is a prime.
+			// Later we will mark the non-prime numbers as false.
+			bool[] dp = Enumerable.Repeat<bool>(true, n).ToArray();
+
+
+			// Since 2 is the smallest prime number, so we start the loop from 2.
+			// Why the boundary is i*i < n instead of i < n? 
+			// If n is divisible by i, then there is a number j which n = i * j. 
+			// Assume i <= j, then i * i <= n. So i <= sqrt(n)
+			for (int i = 2; i * i < n; i++)
+			{
+				// mark multiplies of primes as non-primes
+				if (dp[i])
+				{
+					// Why j starts with i * i instead of 2*i?
+					// If i is a prime, then non-primes before i*i have already been checked before.
+					// For example, if i = 5, we don't need to mark 5*2, 5*3, 5*4, since they have been checked before when i= 2,3,4.
+					for (int j = i * i; j < n; j += i)
+						dp[j] = false;
+				}
+			}
+
+			// count the number of primes starting with 2
+			int result = dp.Where(c => c == true).Count();
+
+			return result - 2;  //Because result include [0],[1] is true.
+		}
+
+		/*
+		 * Leetcode 253: Meeting rooms
+		 * 
+		 * Given an array of meeting time intervals intervals where intervals[i] = [starti, endi], 
+		 * return the minimum number of conference rooms required.
+		 * 
+		 */
+		public static int MeetingRooms(int[][] intervals)
+		{
+
+			int[] start = new int[intervals.Length];
+			int[] end = new int[intervals.Length];
+
+			int i = 0;
+			foreach (int[] item in intervals)
+			{
+				start[i] = item[0];
+				end[i] = item[1];
+
+				i++;
+			}
+
+			Array.Sort(start);
+			Array.Sort(end);
+
+			int res = 0, count = 0, sIndex = 0, eIndex = 0;
+
+			while (sIndex < intervals.Length)
+			{
+				if (start[sIndex] < end[eIndex])
+				{
+					sIndex += 1;
+					count += 1;
+				}
+				else
+				{
+					eIndex += 1;
+					count -= 1;
+				}
+
+				res = Math.Max(res, count);
+			}
+
+			return res;
+		}
+
+		/*
+		 * Leetcode 973: K Closest Points to Origin
+		 * 
+		 * 
+		 */
+		public int[][] KClosest(int[][] points, int k)
+		{
+
+			List<Point> minHeap = new List<Point>();
+
+			foreach (int[] point in points)
+			{
+				int dist = (int)(Math.Pow(point[0], 2) + Math.Pow(point[1], 2));
+				Point p = new Point();
+				p.distance = dist;
+				p.cord = new int[] { point[0], point[1] };
+
+				minHeap.Add(p);
+			}
+
+			int[][] res = new int[k][];
+			int i = 0;
+			foreach (Point item in minHeap.OrderBy(c=>c.distance))
+			{
+				if (i < k)
+				{
+					res[i] = new int[] { item.cord[0], item.cord[1] };
+				}
+				else
+				{
+					break;
+				}
+				i++;
+			}
+
+			return res;
+		}
+
+		public struct Point
+		{
+			public int distance;
+			public int[] cord;
+		}
+
+		/*
+		 * Leetcode 300:
+		 * Given an integer array nums, return the length of the longest strictly increasing subsequence.
+		 * Input: nums = [10,9,2,5,3,7,101,18]
+		 * Output: 4
+		 * Explanation: The longest increasing subsequence is [2,3,7,101], therefore the length is 4.
+		 */
+		public int LengthOfLIS(int[] nums)
+		{
+			int[] LIS = Enumerable.Repeat(1, nums.Length).ToArray();
+
+			for (int i = LIS.Length - 1; i >= 0; i--)
+			{
+
+				for (int j = i + 1; j < LIS.Length; j++)
+				{
+
+					if (nums[i] < nums[j])
+						LIS[i] = Math.Max(LIS[i], 1 + LIS[j]);
+				}
+			}
+
+
+			return LIS.Max();
+		}
+
+		/*
+		 * Leetcode 1143: Longest Common Subsequence  DP
+		 * Given two strings text1 and text2, return the length of their longest common subsequence. If there is no common subsequence, return 0.
+		 * Input: text1 = "abcde", text2 = "ace" 
+		 * Output: 3  
+		 */
+		public static int LongestCommonSubsequence(string text1, string text2)
+		{
+
+			int m = text1.Length, n = text2.Length;
+			int[][] res = Enumerable.Range(0, m + 1)
+						  .Select(x => Enumerable.Repeat(0, n + 1).ToArray())
+						  .ToArray();
+
+			for (int i = m - 1; i > -1; i--)
+			{
+
+				for (int j = n - 1; j > -1; j--)
+				{
+					if (text1[i] == text2[j])
+					{
+						res[i][j] = 1 + res[i + 1][j + 1];
+					}
+					else
+					{
+						res[i][j] = Math.Max(res[i][j + 1], res[i + 1][j]);
+					}
+				}
+
+			}
+
+
+			return res[0][0];
+		}
+
+
+		/*
+		 * Leetcode 152: Maximum Product Subarray
+		 * Input: nums = [2,3,-2,4]
+		 * Output: 6
+		 * Explanation: [2,3] has the largest product 6.
+		 * 
+		 */
+		public static int MaxProduct(int[] nums)
+		{
+
+			int max = nums[0], min = nums[0], res = nums[0];
+
+			for (int i = 1; i < nums.Length; i++)
+			{
+				int product1 = nums[i];
+
+				// nums[i] and max are positive
+				int product2 = nums[i] * max;
+
+				// nums[i] and min are negative
+				int product3 = nums[i] * min;
+
+				max = Math.Max(Math.Max(product1, product2), product3);
+				min = Math.Min(Math.Min(product1, product2), product3);
+
+				res = Math.Max(res, max);
+			}
+
+			return res;
+
 		}
 
 		public static int MaxKilledEnemies(char[][] grid)
@@ -1715,6 +2733,208 @@ namespace LeedCodeTest
 
 			return res;
 		}
+
+		/*
+		 * Leetcode 62 Unique paths
+		 * 
+		 */
+
+		public static int UniquePaths(int m, int n)
+		{
+
+			// Matrix to store the value of possible ways to reach each cell
+			int[][] dp = new int[m][];
+
+			// C# thing, as we cannot define int[][] dp = new int[m][n], fill every cell with 1; 
+			for (int i = 0; i < m; i++)
+			{
+				dp[i] = Enumerable.Repeat(1, n).ToArray();
+			}
+
+			for (int i = 1; i < m; ++i)
+			{
+				for (int j = 1; j < n; ++j)
+				{
+
+					dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+
+				}
+
+			}
+
+			return dp[m - 1][n - 1];
+
+		}
+
+		/*
+		 * Leetcode 63: Unique Paths II
+		 * A robot is located at the top-left corner of a m x n grid (marked 'Start' in the diagram be
+		 * An obstacle and space is marked as 1 and 0 respectively in the grid.
+		 */
+		public static int UniquePathsWithObstacles(int[][] obstacleGrid)
+		{
+			int rows = obstacleGrid.Length;
+			int cols = obstacleGrid[0].Length;
+
+			// If the starting cell has an obstacle, then simply return as there would be
+			// no paths to the destination.
+			if (obstacleGrid[0][0] == 1)
+			{
+				return 0;
+			}
+
+			// Number of ways of reaching the starting cell = 1.
+			obstacleGrid[0][0] = 1;
+
+			// Filling the values for the first column
+			for (int i = 1; i < rows; i++)
+			{
+				obstacleGrid[i][0] = (obstacleGrid[i][0] == 0 && obstacleGrid[i - 1][0] == 1) ? 1 : 0;
+			}
+
+			// Filling the values for the first row
+			for (int i = 1; i < cols; i++)
+			{
+				obstacleGrid[0][i] = (obstacleGrid[0][i] == 0 && obstacleGrid[0][i - 1] == 1) ? 1 : 0;
+			}
+
+			// Starting from cell(1,1) fill up the values
+			// No. of ways of reaching cell[i][j] = cell[i - 1][j] + cell[i][j - 1]
+			// i.e. From above and left.
+			for (int i = 1; i < rows; i++)
+			{
+				for (int j = 1; j < cols; j++)
+				{
+					if (obstacleGrid[i][j] == 0)
+					{
+						obstacleGrid[i][j] = obstacleGrid[i - 1][j] + obstacleGrid[i][j - 1];
+					}
+					else
+					{
+						obstacleGrid[i][j] = 0;
+					}
+				}
+			}
+
+			// Return value stored in rightmost bottommost cell. That is the destination.
+			return obstacleGrid[rows - 1][cols - 1];
+		}
+
+
+		/*
+		 * Leetcode 64: Minimum path sum
+		 * Given a m x n grid filled with non-negative numbers, 
+		 * find a path from top left to bottom right, which minimizes the sum of all numbers along its path.
+		 * 
+		 */
+		public static int MinPathSum(int[][] grid)
+		{
+
+			int m = grid.Length;
+			if (m == 0) return 0;
+			int n = grid[0].Length;
+
+			for (int i = 0; i < m; i++)
+			{
+
+				for (int j = 0; j < n; j++)
+				{
+
+					if (i == 0 && j == 0) continue;
+
+					if (i == 0)
+						grid[i][j] += grid[i][j - 1];
+					else if (j == 0)
+						grid[i][j] += grid[i - 1][j];
+					else
+						grid[i][j] += Math.Min(grid[i][j - 1], grid[i - 1][j]);
+
+
+				}
+
+			}
+
+			return grid[m - 1][n - 1];
+
+		}
+
+
+		/*
+		 * Leetcode 72: edit distance
+		 * Given two strings word1 and word2, return the minimum number of operations required to convert word1 to word2.
+		 * You have the following three operations permitted on a word:
+		 * Insert a character
+		 * Delete a character
+		 * Replace a character
+		 * Input: word1 = "horse", word2 = "ros"
+		 * Output: 3
+		 * 
+		 */
+		public static int MinDistance(string word1, string word2)
+		{
+			int m = word1.Length, n = word2.Length;
+
+			int[,] cache = new int[m + 1, n + 1];
+
+			for (int j = 0; j < n + 1; j++)
+				cache[m, j] = n - j;
+
+			for (int i = 0; i < m + 1; i++)
+				cache[i, n] = m - i;
+
+			for (int i = m - 1; i > -1; i--)
+			{
+
+				for (int j = n - 1; j > -1; j--)
+				{
+
+					if (word1[i] == word2[j])
+						cache[i, j] = cache[i + 1, j + 1];
+					else
+						cache[i, j] = 1 + Math.Min(cache[i + 1, j], Math.Min(cache[i, j + 1], cache[i + 1, j + 1]));
+
+				}
+
+			}
+
+			return cache[0, 0];
+
+		}
+
+		/*
+		 * Leetcode 139: word break, dp
+		 * Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words.
+		 * Input: s = "leetcode", wordDict = ["leet","code"]
+		 * Output: true
+		 * 
+		 */
+		public static bool WordBreak(string s, IList<string> wordDict)
+		{
+
+			bool[] dp = new bool[s.Length + 1];
+			dp[s.Length] = true;
+
+			for (int i = s.Length - 1; i > -1; i--)
+			{
+				foreach (string w in wordDict)
+				{
+
+					if (i + w.Length <= s.Length && s.Substring(i, w.Length) == w)
+					{
+						dp[i] = dp[i + w.Length];
+					}
+
+					if (dp[i])
+						break;
+				}
+			}
+
+			return dp[0];
+
+
+		}
+
+
 		/*
 		 * 243 Shortest Word Distance
 		 * 
@@ -1912,6 +3132,68 @@ namespace LeedCodeTest
 		}
 
 		/*
+		 * Leetcode 37: sudoku solver
+		 * 
+		 * 
+		 */
+		private bool[,] rows = new bool[9, 10],
+					cols = new bool[9, 10],
+					boxes = new bool[9, 10];
+
+		public void SolveSudoku(char[][] board)
+		{
+			if (board == null || board.Length == 0)
+				return;
+
+			for (int i = 0; i < board.Length; i++)
+				for (int j = 0; j < board[0].Length; j++)
+					if (board[i][j] != '.')
+					{
+						rows[i, board[i][j] - '0'] = true;
+						cols[j, board[i][j] - '0'] = true;
+						boxes[(i / 3) * 3 + j / 3, board[i][j] - '0'] = true;
+					}
+
+			Helper(board, 0, 0);
+		}
+
+		private bool Helper(char[][] board, int i, int j)
+		{
+			while (i < 9 && board[i][j] != '.')
+			{
+				j++;
+
+				if (j > 8)
+				{
+					i++;
+					j = 0;
+				}
+			}
+
+			if (i == 9)
+				return true;
+
+			for (int k = 1; k < 10; k++)
+				if (!rows[i, k] && !cols[j, k] && !boxes[(i / 3) * 3 + j / 3, k])
+				{
+					rows[i, k] = true;
+					cols[j, k] = true;
+					boxes[(i / 3) * 3 + j / 3, k] = true;
+					board[i][j] = (char)(k + 48);
+
+					if (Helper(board, i, j))
+						return true;
+
+					rows[i, k] = false;
+					cols[j, k] = false;
+					boxes[(i / 3) * 3 + j / 3, k] = false;
+					board[i][j] = '.';
+				}
+
+			return false;
+		}
+
+		/*
 		 * Leetcode 36, Medium
 		 * 
 		 * Determine if a 9 x 9 Sudoku board is valid. Only the filled cells need to be validated according to the following rules:
@@ -1956,9 +3238,45 @@ namespace LeedCodeTest
 			return true;
 		}
 
+		/*
+		 * Easy understanding code
+		 * 
+		 */
+		public bool IsValidSudoku2(char[][] board)
+		{
+
+			HashSet<string> seen = new HashSet<string>();
+
+			for (int i = 0; i < 9; i++)
+			{
+
+				for (int j = 0; j < 9; j++)
+				{
+
+					char current_val = board[i][j];
+
+					if (current_val != '.')
+					{
+
+						if (!seen.Add(current_val + "found in row" + i)
+						  || !seen.Add(current_val + "found in column" + j)
+						  || !seen.Add(current_val + "found in sub box" + i / 3 + "-" + j / 3)
+						  )
+						{
+							return false;
+						}
+					}
+				}
+
+			}
+
+			return true;
+
+		}
 
 
-		public static bool IsValidSudoku2(char[][] grid)
+
+		public static bool IsValidSudoku3(char[][] grid)
 		{
 			return isValidConfig(grid, 9);
 		}
@@ -2165,6 +3483,40 @@ namespace LeedCodeTest
 				j--;
 			}
 			return tiny;
+		}
+
+		/*
+		 * Leetcode 322: Coin Change
+		 * You are given an integer array coins representing coins of different denominations and an integer amount representing a total amount of money.
+		 * Input: coins = [1,2,5], amount = 11
+		 * Output: 3
+		 * Explanation: 11 = 5 + 5 + 1
+		 */
+		public static int CoinChange(int[] coins, int amount)
+		{
+
+			// initialize the DP array
+			var dp = Enumerable.Repeat(amount + 1, amount + 1).ToArray();
+			dp[0] = 0;
+
+			for (int a = 1; a < amount + 1; a++)
+			{
+				foreach (int c in coins)
+				{
+
+					if (a - c >= 0)
+					{
+
+						dp[a] = Math.Min(dp[a], 1 + dp[a - c]);
+
+					}
+
+				}
+
+			}
+
+			return dp[amount] != amount + 1 ? dp[amount] : -1;
+
 		}
 
 		public static long subarraysCountBySum(int[] arr, int k, long s)
@@ -2406,6 +3758,234 @@ namespace LeedCodeTest
 			return res;
 
 		}
+
+		/*
+		 * Leetcode 59:  Spiral Matrix II
+		 * 
+		 * Given a positive integer n, generate an n x n matrix filled with elements from 1 to n2 in spiral order.
+		 */
+		public static int[][] GenerateSpiralMatrix(int n)
+		{
+			int[][] res = new int[n][];
+
+			for (var i = 0; i < n; i++)
+				res[i] = new int[n];
+
+			int rowBegin = 0;
+			int rowEnd = n - 1;
+			int columnBegin = 0;
+			int columnEnd = n - 1;
+
+			int counter = 1;
+
+			while (rowBegin <= rowEnd && columnBegin <= columnEnd)
+			{
+
+				for (int i = columnBegin; i <= columnEnd; i++)
+					res[rowBegin][i] = counter++;
+
+				rowBegin++;
+
+				for (int i = rowBegin; i <= rowEnd; i++)
+					res[i][columnEnd] = counter++;
+
+				columnEnd--;
+
+				if (rowBegin <= rowEnd)
+				{
+					for (int i = columnEnd; i >= columnBegin; i--)
+					{
+						res[rowEnd][i] = counter++;
+					}
+				}
+
+				rowEnd--;
+
+				if (columnBegin <= columnEnd)
+				{
+					for (int i = rowEnd; i >= rowBegin; i--)
+					{
+						res[i][columnBegin] = counter++;
+					}
+				}
+
+				columnBegin++;
+			}
+
+			return res;
+
+		}
+
+		/*
+		 * Leetcode 73. Set Matrix Zeros
+		 * Given an m x n matrix. If an element is 0, set its entire row and column to 0. Do it in-place.
+		 */
+		public void SetZeroes(int[][] matrix)
+		{
+
+			int m = matrix.Length;
+			int n = matrix[0].Length;
+
+			List<int[]> pos = new List<int[]>();
+
+			for (int i = 0; i < m; i++)
+			{
+
+				for (int j = 0; j < n; j++)
+				{
+
+					if (matrix[i][j] == 0)
+					{
+						pos.Add(new int[] { i, j });
+					}
+				}
+			}
+
+			int row = 0, col = 0;
+			foreach (int[] item in pos)
+			{
+				row = item[0];
+				col = item[1];
+				int index = 0;
+
+				//fill row with 0
+				while (index < n)
+				{
+					matrix[row][index] = 0;
+					index++;
+				}
+
+				index = 0;
+				//fill column with 0
+				while (index < m)
+				{
+					matrix[index][col] = 0;
+					index++;
+				}
+			}
+
+
+		}
+
+
+		/*
+		 * Leetcode 794: Valid Tic-Tac-Toe state
+		 * 
+		 * 
+		 */
+
+		public bool ValidTicTacToe(string[] board)
+		{
+
+			// If xWins and oWins are the number of win conditions for X and O respectively, 
+			//      then if xWins > 0 && oWins > 0 it is invalid
+			//      then if xWins > 0 && oWins == 0 it is valid
+			//      then if xWins == 0 && oWins > 0 it is valid
+			//      then if xWins == 0 && oWins == 0 it is valid
+			//      if either xWins or oWins > 2, it is invalid. but this will be caught in the xCount and oCount part due to one having too many.
+
+			int xCount = 0, oCount = 0, xWins = 0, oWins = 0;
+			// CHECK FOR # OF WIN[s?, CONDITIONS?]
+			for (int i = 0; i < 3; ++i)
+			{
+				// check horizontal win
+				if (board[i][0] != ' ' && board[i][0] == board[i][1] && board[i][1] == board[i][2])
+				{
+					if (board[i][0] == 'X')
+					{
+						xWins++;
+					}
+					else if (board[i][0] == 'O')
+					{    // TODO: if guaranteed only "X", "O", or " ", then this line can just be an else (no if needed).
+						oWins++;
+					}
+				}
+
+				// check vertical win
+				if (board[0][i] != ' ' && board[0][i] == board[1][i] && board[1][i] == board[2][i])
+				{
+					if (board[0][i] == 'X')
+					{
+						xWins++;
+					}
+					else if (board[0][i] == 'O')
+					{
+						oWins++;
+					}
+				}
+			}
+
+			// check diag ↘⇘⤡
+			if (board[0][0] != ' ' && board[0][0] == board[1][1] && board[1][1] == board[2][2])
+			{
+				if (board[0][0] == 'X')
+				{
+					xWins++;
+				}
+				else if (board[0][0] == 'O')
+				{
+					oWins++;
+				}
+			}
+
+			// check diag ↙⇙⤢
+			if (board[0][2] != ' ' && board[0][2] == board[1][1] && board[1][1] == board[2][0])
+			{
+				// winner
+				if (board[0][2] == 'X')
+				{
+					xWins++;
+				}
+				else if (board[0][2] == 'O')
+				{
+					oWins++;
+				}
+			}
+
+			if (xWins > 0 && oWins > 0)
+			{
+				// Invalid, cant have 2 winners.
+				return false;
+			}
+
+			// Check to make sure both players were taking the appropriate number of turns
+
+			for (int i = 0; i < 3; ++i)
+			{
+				for (int j = 0; j < 3; ++j)
+				{
+					if (board[i][j] == 'X')
+					{
+						xCount++;
+					}
+					else if (board[i][j] == 'O')
+					{
+						oCount++;
+					}
+				}
+			}
+
+
+			// if x is the winner, and both have the same count, it is invalid
+			if (xWins > 0 && oWins == 0 && xCount == oCount)
+			{
+				return false;
+			}
+			// if o is the winner, x must equal o
+			if (xWins == 0 && oWins > 0 && xCount != oCount)
+			{
+				return false;
+			}
+			// if no winners, they must be equal or X may have one more than O
+			if (!(xCount == oCount || xCount == oCount + 1))
+			{
+				return false;
+			}
+
+
+			return true;
+		}
+
 
 		/*
 		 * Codesignal practice test Matrix diagonal
@@ -2924,6 +4504,36 @@ namespace LeedCodeTest
 			return str; //it has the full string;
 		}
 
+		int segmentsCovering(int[][] segments)
+		{
+
+			int len = segments.Length;
+
+			if (len == 1) return 1;
+
+			Array.Sort(segments, (a, b) => { return a[0] - b[0]; });
+
+			int result = 0;
+			bool[] used = new bool[len];
+
+			int i = 0;
+
+			while (i < len)
+			{
+
+				used[i] = true;
+				if (i + 1 < len && segments[i][1] <= segments[i + 1][0] && used[i + 1] == false)
+				{
+					used[i + 1] = true;
+					result++;
+				}
+
+				i++;
+			}
+
+			return result;
+		}
+
 		public static string processBracketsDuplicate(string str)
 		{
 			int len = str.Length;
@@ -3126,6 +4736,7 @@ namespace LeedCodeTest
 
 			backtrackPermutaion(nums, results, comb, used);
 
+
 			return results;
 		}
 
@@ -3185,95 +4796,498 @@ namespace LeedCodeTest
 
 		}
 
+		/*
+		 * 
+		 * Leetcode 77: Combinations
+		 * Given two integers n and k, return all possible combinations of k numbers out of the range [1, n].
+		 */
+		public IList<IList<int>> Combine(int n, int k)
+		{
+			List<IList<int>> output = new List<IList<int>>();
+			LinkedList<int> curr = new LinkedList<int>();
+
+			backtrack(1, curr, output, n, k);
+
+			return output;
+		}
+
+		public void backtrack(int first, LinkedList<int> comb, List<IList<int>> output, int n, int k)
+		{
+
+			// if the combination is done
+			if (comb.Count == k)
+				output.Add(new List<int>(comb));
+
+			for (int i = first; i < n + 1; ++i)
+			{
+				// add i into the current combination
+				comb.AddLast(i);
+
+				// use next integers to complete the combination
+				backtrack(i + 1, comb, output, n, k);
+
+				// backtrack
+				comb.RemoveLast();
+			}
+		}
+
+		/*
+		 * Leetcode 22: Generate Parentheses
+		 * Given n pairs of parentheses, write a function to generate all combinations of well-formed parentheses.
+		 * 
+		 * 
+		 */
 		public static IList<string> GenerateParenthesis(int n)
 		{
-			List<string> result = new List<string>();
-			LinkedList<char> comb = new LinkedList<char>();
-			int open = 0, close = 0;
+			List<string> res = new List<string>();
 
-			backtrackParenthesis(n, open, close, comb, result);
+			backtrack(res, "", 0, 0, n);
+
+			return res;
+		}
+
+		public static void backtrack(List<string> res, string cur, int open, int close, int max)
+		{
+			if (cur.Length == 2 * max)
+			{
+				res.Add(cur);
+				return;
+			}
+
+			if (open < max) backtrack(res, cur + "(", open + 1, close, max);
+
+			if (close < open) backtrack(res, cur + ")", open, close + 1, max);
+
+		}
+
+
+		/*
+		 * Leetcode 207: Course Schedule
+		 * 
+		 * 
+		 */
+		public static bool CanFinish(int numCourses, int[][] prerequisites)
+		{
+
+			IDictionary<int, List<int>> coursesMap = new Dictionary<int, List<int>>();
+			HashSet<int> visited = new HashSet<int>();
+			HashSet<int> completed = new HashSet<int>();
+			BuildMap();
+			for (int i = 0; i < numCourses; i++)
+			{
+				if (!visited.Contains(i))
+				{
+					if (!dfs(i))
+						return false;
+				}
+			}
+
+			return true;
+
+
+			void BuildMap()
+			{
+
+				for (int i = 0; i < numCourses; i++)
+				{
+					coursesMap.Add(i, new List<int>());
+				}
+
+				foreach (int[] course in prerequisites)
+				{
+					int courseToTake = course[0];
+					int courseDependOn = course[1];
+					coursesMap[courseToTake].Add(courseDependOn);
+				}
+			}
+
+			bool dfs(int course)
+			{
+
+				visited.Add(course);
+				IList<int> coursesToCompletedList = coursesMap[course];
+				foreach (int c in coursesToCompletedList)
+				{
+
+					if (!visited.Contains(c))
+					{
+						if (!dfs(c)) return false;
+					}
+					if (!completed.Contains(c))
+					{
+						return false;
+					}
+				}
+				completed.Add(course);
+				return true;
+			}
+		}
+
+		/*
+		 * Leetcode 261: Graph valid tree
+		 * Input: n = 5, edges = [[0,1],[0,2],[0,3],[1,4]]
+		 * Output: true
+		 */
+		public bool ValidTree(int n, int[][] edges)
+		{
+
+			if (n == 0)
+				return true;
+
+			IDictionary<int, List<int>> adj = new Dictionary<int, List<int>>();
+
+			for (int i = 0; i < n; i++)
+			{
+				adj.Add(i, new List<int>());
+			}
+
+			foreach (int[] edge in edges)
+			{
+				int n1 = edge[0];
+				int n2 = edge[1];
+				adj[n1].Add(n2);
+				adj[n2].Add(n1);
+			}
+
+			HashSet<int> visit = new HashSet<int>();
+
+			bool dfs(int i, int prev)
+			{
+				if (visit.Contains(i))
+					return false;
+
+				visit.Add(i);
+				foreach (int j in adj[i])
+				{
+					if (j == prev)
+						continue;
+					if (!dfs(j, i))
+						return false;
+				}
+
+				return true;
+			}
+
+			return dfs(0, -1) && n == visit.Count;
+
+		}
+
+		/*
+		 * Leetcode 323. Number of Connected Components in an Undirected Graph
+		 * Input: n = 5, edges = [[0,1],[1,2],[3,4]]
+		 * Output: 2
+		 */
+		public static int CountComponents(int n, int[][] edges)
+		{
+			int[] par = Enumerable.Range(0, n).ToArray();
+			int[] rank = Enumerable.Repeat(1, n).ToArray();
+
+			int find(int n1)
+			{
+				int res = n1;
+
+				while (res != par[res])
+				{
+					par[res] = par[par[res]];
+					res = par[res];
+				}
+
+				return res;
+			}
+
+			int union(int n1, int n2)
+			{
+
+				int p1 = find(n1), p2 = find(n2);
+
+				if (p1 == p2)
+					return 0;
+
+				if (rank[p2] > rank[p1])
+				{
+					par[p1] = p2;
+					rank[p2] += rank[p1];
+				}
+				else
+				{
+					par[p2] = p1;
+					rank[p1] += rank[p2];
+				}
+
+				return 1;
+			}
+
+			int result = n;
+			for (int i = 0; i < edges.Length; i++)
+			{
+				result -= union(edges[i][0], edges[i][1]);
+			}
 
 			return result;
 		}
 
-		private static void backtrackParenthesis(int n, int openN, int closeN, LinkedList<char> comb, List<string> result)
-		{
-			if( openN == closeN && openN == n)
-			{
-				result.Add(string.Join("", comb));
-			}
-
-			if (openN < n)
-			{   
-				//make a choise to add open parenthesis
-				comb.AddLast('(');
-				backtrackParenthesis(n, openN + 1, closeN, comb, result);
-
-				//undo the choice not include the open aprenthesisi
-				comb.RemoveLast();
-
-			}
-
-			if (closeN < openN)
-			{
-				//make a choise to add close parenthesis
-				comb.AddLast(')');
-				backtrackParenthesis(n, openN, closeN+1, comb, result);
-
-				//undo the choice not include the open aprenthesisi
-				comb.RemoveLast();
-			}
-
-
-		}
-
-
-		/**
-		 * Leetcode 
+		/*
+		 * Leetcode 417: Pacific Atlantic Water Flow
+		 * 
 		 * 
 		 * 
 		 */
-		public static void nextPermutation(int[] nums)
+		public IList<IList<int>> PacificAtlantic(int[][] heights)
 		{
-			int k = nums.Length - 2;
+			int ROWS = heights.Length, COLS = heights[0].Length;
 
-			while (k >= 0 && nums[k] >= nums[k + 1])
+			HashSet<Position> pac = new HashSet<Position>();
+			HashSet<Position> atl = new HashSet<Position>();
+
+
+			void dfs(int r, int c, HashSet<Position> visit, int prevHeight)
 			{
-				--k;
+				Position p = new Position();
+				p.row = r;
+				p.column = c;
+
+				if (visit.Contains(p) || r < 0 || c < 0 || r == ROWS || c == COLS
+				  || heights[r][c] < prevHeight)
+					return;
+
+				visit.Add(p);
+				dfs(r + 1, c, visit, heights[r][c]);
+				dfs(r - 1, c, visit, heights[r][c]);
+				dfs(r, c + 1, visit, heights[r][c]);
+				dfs(r, c - 1, visit, heights[r][c]);
 			}
 
-			if (k == -1)
+			for (int c = 0; c < COLS; c++)
 			{
-				reverse(nums, 0, nums.Length - 1);
-				return;
+				dfs(0, c, pac, heights[0][c]);
+				dfs(ROWS - 1, c, atl, heights[ROWS - 1][c]);
 			}
 
-			for(int l = nums.Length - 1; l > k; --l)
+			for (int r = 0; r < ROWS; r++)
 			{
-				if (nums[l] > nums[k])
+				dfs(r, 0, pac, heights[r][0]);
+				dfs(r, COLS - 1, atl, heights[r][COLS - 1]);
+			}
+
+			List<IList<int>> res = new List<IList<int>>();
+
+			for (int r = 0; r < ROWS; r++)
+			{
+				for (int c = 0; c < COLS; c++)
 				{
-					int temp = nums[k];
-					nums[k] = nums[l];
-					nums[l] = temp;
-					break;
+					Position p = new Position();
+					p.row = r;
+					p.column = c;
+					if (pac.Contains(p) && atl.Contains(p))
+					{
+						res.Add(new List<int>() { r, c });
+					}
 				}
+
 			}
 
-			reverse(nums, k + 1, nums.Length - 1);
+			return res;
 
 		}
 
-		private static void reverse(int[] nums, int start, int end)
-		{
-			while (start < end)
-			{
-				int tmp = nums[start];
-				nums[start] = nums[end];
-				nums[end] = tmp;
 
-				start++;
-				end--;
+		public struct Position
+		{
+			public int row;
+			public int column;
+		}
+
+		/*
+		 * Leetcode 128: Longest Consecutive Sequence
+		 * Given an unsorted array of integers nums, return the length of the longest consecutive elements sequence.
+		 * 
+		 * Input: nums = [100,4,200,1,3,2]
+		 * Output: 4
+		 * Explanation: The longest consecutive elements sequence is [1, 2, 3, 4]. Therefore its length is 4.
+		 */
+		public static int LongestConsecutive(int[] nums)
+		{
+			//Generate sequence hash set
+			var numSet = new HashSet<int>(nums);
+
+			int longest = 0;
+
+			for (int i = 0; i < nums.Length; i++)
+			{
+				//check if its the start of a sequence
+				if (!numSet.Contains(nums[i] - 1))
+				{
+					int length = 0;
+					while (numSet.Contains(nums[i] + length))
+					{
+						length++;
+					}
+
+					longest = Math.Max(longest, length);
+				}
 			}
+
+			return longest;
+
+
+		}
+
+		static bool canFormPalindrome(string str)
+		{
+			HashSet<char> set = new HashSet<char>();
+
+			int i = 0;
+
+			while (i < str.Length)
+			{
+				if (set.Contains(str[i]))
+				{
+					set.Remove(str[i]);
+				}
+				else
+				{
+					set.Add(str[i]);
+				}
+
+				i++;
+			}
+
+			return set.Count <= 0 ? true : false;
+
+		}
+
+		/*
+		 * Leetcode 131: Palindrome Partitioning
+		 * Given a string s, partition s such that every substring of the partition is a palindrome. Return all possible palindrome partitioning of s.
+		 * Input: s = "aab"
+		 * Output: [["a","a","b"],["aa","b"]]
+		 */
+		public static IList<IList<string>> PalindromePartition(string s)
+		{
+
+			List<IList<string>> res = new List<IList<string>>();
+			LinkedList<string> part = new LinkedList<string>();
+
+			dfs(0);
+
+			return res;
+
+			void dfs(int startIndex)
+			{
+				if (startIndex >= s.Length)
+				{
+					res.Add(new List<string>(part));
+					return;
+				}
+
+				for (int j = startIndex; j < s.Length; j++)
+				{
+					var sub = s.Substring(startIndex, j - startIndex + 1);
+					if (isPali(sub))
+					{
+						// Add choice
+						part.AddLast(sub);
+
+						dfs(j + 1);
+
+						// Remove choice
+						part.RemoveLast();
+					}
+				}
+			}
+		}
+
+		private static bool isPali(string str)
+		{
+			for (int i = 0, j = str.Length - 1; i < j;)
+			{
+				if (str[i++] != str[j--]) return false;
+			}
+			return true;
+		}
+
+		/*
+		 * Leetcode 17: Letter Combinations of a Phone Number
+		 * 
+		 * Input: digits = "23"
+		 * Output: ["ad","ae","af","bd","be","bf","cd","ce","cf"]
+		 * 
+		 */
+		private Dictionary<char, string> digitToChar = new Dictionary<char, string>{
+		{'2', "abc"}, {'3', "def"}, {'4', "ghi"}, {'5', "jkl"},
+		{'6', "mno"}, {'7', "pqrs"}, {'8', "tuv"}, {'9', "wxyz"}};
+
+		public IList<string> LetterCombinations(string digits)
+		{
+
+			List<string> res = new List<string>();
+
+
+			if (digits.Length != 0)
+				backtrack(0, "");
+
+			return res;
+
+			void backtrack(int i, string curStr)
+			{
+				if (curStr.Length == digits.Length)
+				{
+					res.Add(curStr);
+					return;
+				}
+
+				foreach (char c in digitToChar[digits[i]])
+				{
+
+					backtrack(i + 1, curStr + c);
+
+				}
+
+			}
+		}
+
+		/**
+		 * Leetcode 31: Next Permutation
+		 * Input: nums = [1,2,3]
+		 * Output: [1,3,2]
+		 */
+		public static void NextPermutation(int[] nums)
+		{
+			int i = nums.Length - 2;
+			while (i >= 0 && nums[i + 1] <= nums[i])
+			{
+				i--;
+			}
+
+			if (i >= 0)
+			{
+				int j = nums.Length - 1;
+				while (nums[j] <= nums[i])
+				{
+					j--;
+				}
+				swap(nums, i, j);
+			}
+
+			reverse(nums, i + 1);
+		}
+
+		private static void reverse(int[] nums, int start)
+		{
+			int i = start, j = nums.Length - 1;
+			while (i < j)
+			{
+				swap(nums, i, j);
+				i++;
+				j--;
+			}
+		}
+
+		private static void swap(int[] nums, int i, int j)
+		{
+			int temp = nums[i];
+			nums[i] = nums[j];
+			nums[j] = temp;
 		}
 
 		/*
@@ -3336,11 +5350,11 @@ namespace LeedCodeTest
 			return result;
 		}
 
-		private static void backtrackCombinationsSumUnique(int[] candidates, int target, LinkedList<int> cur, int starti, List<IList<int>> result)
+		private static void backtrackCombinationsSumUnique(int[] candidates, int target, LinkedList<int> comb, int starti, List<IList<int>> result)
 		{
 			if (target == 0)
 			{
-				result.Add(new List<int>(cur));
+				result.Add(new List<int>(comb));
 				return;
 			}
 
@@ -3353,16 +5367,77 @@ namespace LeedCodeTest
 					break;
 
 				//make a choice
-				cur.AddLast(candidates[i]);
+				comb.AddLast(candidates[i]);
 
-				backtrackCombinationsSumUnique(candidates, target - candidates[i], cur, i+1, result);
+				backtrackCombinationsSumUnique(candidates, target - candidates[i], comb, i+1, result);
 
 				//undo the choice
-				cur.RemoveLast();
+				comb.RemoveLast();
 			}
 			
 		}
 
+
+		public static List<int> MaxRepeating(string sequence, string[] words)
+		{
+			List<int> res = new List<int>();
+
+			foreach(string word in words)
+			{
+				string test = word;
+				int max = 0;
+				while (true)
+				{
+					if (sequence.Contains(test))
+					{
+						max++;
+						test += word;
+					}
+					else
+						break;
+				}
+
+				res.Add(max);
+			}
+
+			
+			return res;
+		}
+
+		public static IList<IList<int>> combineTheGivenNumber(int[] candidates, int target)
+		{
+			List<IList<int>> result = new List<IList<int>>();
+			LinkedList<int> cur = new LinkedList<int>();
+			string total = "";
+
+			backtrackTheGivenNumber(0, candidates, cur, total, target, result);
+
+			return result;
+
+		}
+
+		private static void backtrackTheGivenNumber(int starti, int[] candidates, LinkedList<int> cur, string total, int target, List<IList<int>> result)
+		{
+			if (total.ToString().Equals(target.ToString()))
+			{
+				result.Add(new List<int>(cur));
+				return;
+			}
+
+			for (int i = starti; i < candidates.Length; i++)
+			{
+				if (i != starti && candidates[i] == candidates[i - 1])
+					continue;
+
+				//make a choice
+				cur.AddLast(candidates[i]);
+
+				backtrackTheGivenNumber(i+1, candidates, cur, total + candidates[i].ToString(), target,  result);
+
+				//undo the choice
+				cur.RemoveLast();
+			}
+		}
 
 
 		/*
@@ -3394,12 +5469,77 @@ namespace LeedCodeTest
 			if (i >= candidates.Length || total > target)
 				return;
 
+			//Make a choice
 			cur.AddLast(candidates[i]);
 			backtrackCombinations(i, candidates, cur, total + candidates[i], target, result);
 
+			//undo a choice
 			cur.RemoveLast();
 			backtrackCombinations(i + 1, candidates, cur, total, target, result);
 
+		}
+
+		/*
+		 * Leetcode 79: word search backtracking
+		 * Given an m x n grid of characters board and a string word, return true if word exists in the grid.
+		 * Input: board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCCED"
+		 * Output: true
+		 */
+		public static bool Exist(char[][] board, string word)
+		{
+
+			int rows = board.Length;
+			int columns = board[0].Length;
+			bool[][] visited = new bool[rows][];
+
+			for (int i = 0; i < rows; i++)
+			{
+				visited[i] = new bool[columns];
+			}
+
+			for (int i = 0; i < rows; i++)
+			{
+
+				for (int j = 0; j < columns; j++)
+				{
+
+					if (word[0] == board[i][j] && searchWord(i, j, 0, board, word, visited))
+					{
+						return true;
+					}
+				}
+
+			}
+
+			return false;
+		}
+
+		public static bool searchWord(int i, int j, int index, char[][] board, string word, bool[][] visited)
+		{
+			if (index == word.Length)
+			{
+				return true;
+			}
+
+			if (i < 0 || i >= board.Length || j < 0 || j >= board[0].Length
+			   || word[index] != board[i][j] || visited[i][j])
+			{
+				return false;
+			}
+
+			visited[i][j] = true;
+
+			if (searchWord(i + 1, j, index + 1, board, word, visited) ||
+				searchWord(i - 1, j, index + 1, board, word, visited) ||
+				searchWord(i, j + 1, index + 1, board, word, visited) ||
+				searchWord(i, j - 1, index + 1, board, word, visited))
+			{
+				return true;
+			}
+
+			visited[i][j] = false;
+
+			return false;
 		}
 
 		/*
@@ -3538,8 +5678,776 @@ namespace LeedCodeTest
 
 		}
 
+		/*
+		 * Leetcode 55. Jump game
+		 * Given an array of non-negative integers nums, you are initially positioned at the first index of the array.
+		 * Each element in the array represents your maximum jump length at that position.
+		 * Determine if you are able to reach the last index.
+		 */
+		public static bool CanJump(int[] nums)
+		{
+			int lastGoodIndexPosition = nums.Length - 1;
+
+			for (int i = nums.Length - 1; i >= 0; i--)
+			{
+
+				if (i + nums[i] >= lastGoodIndexPosition)
+				{
+					lastGoodIndexPosition = i;
+				}
+			}
+
+			return lastGoodIndexPosition == 0;
+		}
+
+		/*
+		 * Leetcode 1871: Jump Game VII
+		 * You are given a 0-indexed binary string s and two integers minJump and maxJump. 
+		 * In the beginning, you are standing at index 0, which is equal to '0'. You can move from index i to index j if the following conditions are fulfilled:
+		 * Input: s = "011010", minJump = 2, maxJump = 3
+		 * Output: true
+		 * Explanation:
+		 * In the first step, move from index 0 to index 3. 
+		 * In the second step, move from index 3 to index 5.
+		 * 
+		 */
+		public static bool CanReach(string s, int minJump, int maxJump)
+		{
+			if (s[s.Length - 1] == '1') return false;
+
+			Queue<int> q = new Queue<int>();
+			q.Enqueue(0);
+			int farthest = 0;
+
+			while (q.Count > 0)
+			{
+
+				int i = q.Dequeue();
+
+				int start = Math.Max(i + minJump, farthest + 1);
+				int end = Math.Min(i + maxJump + 1, s.Length);
+
+				for (int j = start; j < end; j++)
+				{
+
+					if (s[j] == '0')
+						q.Enqueue(j);
+
+					if (j == s.Length - 1)
+						return true;
+				}
+
+				farthest = i + maxJump;
+
+			}
+
+			return false;
+
+		}
+
+
+		/*
+		 * Leetcode 56: Merge intervals
+		 * Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals, 
+		 * and return an array of the non-overlapping intervals that cover all the intervals in the input.
+		 * 
+		 */
+		public static int[][] Merge(int[][] intervals)
+		{
+			if (intervals.Length == 1)
+			{
+				return intervals;
+			}
+
+			Array.Sort(intervals, (a, b) => { return a[0] - b[0]; });
+
+			List<int[]> output_arr = new List<int[]>();
+
+			int[] current_interval = intervals[0];
+			output_arr.Add(current_interval);
+
+			foreach (int[] interval in intervals)
+			{
+				int current_begin = current_interval[0];
+				int current_end = current_interval[1];
+				int next_begin = interval[0];
+				int next_end = interval[1];
+
+				if (current_end >= next_begin)
+				{
+					current_interval[1] = Math.Max(current_end, next_end);
+				}
+				else
+				{
+					current_interval = interval;
+					output_arr.Add(current_interval);
+				}
+
+			}
+
+
+			return output_arr.ToArray();
+		}
+
+		public static int[][] Insert(int[][] intervals, int[] newInterval)
+		{
+			List<int[]> res = new List<int[]>();
+
+			int i = 0;
+			int n = intervals.Length;
+
+			int nStart = newInterval[0];
+			int nEnd = newInterval[1];
+
+			//Sort the intervals first
+			Array.Sort(intervals, (a, b) => { return a[0] - b[0]; });
+
+			while (i < n && intervals[i][1] < nStart)
+			{
+				res.Add(intervals[i]);
+				i++;
+			}
+
+			if (i == n)
+			{
+				res.Add(newInterval);
+				return res.ToArray();
+			}
+
+			nStart = Math.Min(intervals[i][0], nStart);
+
+			while (i < n && intervals[i][0] <= nEnd)
+			{
+				nEnd = Math.Max(nEnd, intervals[i][1]);
+				i++;
+			}
+
+			res.Add(new int[] { nStart, nEnd });
+
+			while (i < n)
+			{
+				res.Add(intervals[i++]);
+			}
+
+			return res.ToArray();
+		}
+
+
+		/*
+		 * Expedia group coding interview simulate like Leetcode 1046
+		 * 
+		 * 
+		 */
+		public static int getStonesWeight(List<int> weights)
+		{
+			int len = weights.Count;
+
+			if (len == 1) return weights.ElementAt(0);
+
+			int i = len - 1;
+
+			while( i - 1 >= 0)
+			{
+				if(weights.ElementAt(i) == weights.ElementAt(i-1))
+				{
+					weights.Remove(weights.ElementAt(i));
+					weights.Remove(weights.ElementAt(i-1));
+					i--;
+				}
+				else
+				{
+					int mins = Math.Abs(weights.ElementAt(i) - weights.ElementAt(i - 1));
+					weights[i - 1] = mins;
+					weights.Remove(weights.ElementAt(i));
+					weights.Sort();
+				}
+				i--;
+			}
+
+			return weights.Count == 0 ? 0 : weights.ElementAt(0);
+
+		}
+
+		/*Leetcode 1046: Last Stone Weight
+		 * Input: [2,7,4,1,8,1]
+		 * Output: 1
+		 */
+		public static int LastStoneWeight(int[] stones)
+		{
+			int len = stones.Length;
+
+			if (len == 1) return stones[0];
+
+			List<int> weights = new List<int>(stones);
+
+			weights.Sort();
+
+			int i = len - 1;
+
+			while (i - 1 >= 0)
+			{
+				if (weights.ElementAt(i) == weights.ElementAt(i - 1))
+				{
+					weights.Remove(weights.ElementAt(i));
+					weights.Remove(weights.ElementAt(i - 1));
+					i--;
+				}
+				else
+				{
+					int mins = Math.Abs(weights.ElementAt(i) - weights.ElementAt(i - 1));
+					weights[i - 1] = mins;
+					weights.Remove(weights.ElementAt(i));
+					weights.Sort();
+				}
+				i--;
+			}
+
+			return weights.Count == 0 ? 0 : weights.ElementAt(0);
+
+		}
+
+		/*
+		 * Leetcode 71: Simplify Path
+		 * path = "/home//foo/"
+		 * "/home/foo"
+		 */
+		public static string SimplifyPath(string path)
+		{
+			if (path == "")
+				return "/";
+
+			string[] p = path.Split('/');
+			Stack<string> stack = new Stack<string>();
+
+			for (int i = 0; i < p.Length; i++)
+			{
+				if (p[i] == "" || p[i] == ".")
+					continue;
+				else if (p[i] == "..")
+				{
+					if (stack.Count > 0)
+					{
+						stack.Pop();
+						continue;
+					}
+				}
+				else
+					stack.Push(p[i]);
+			}
+
+			StringBuilder sb = new StringBuilder();
+			while (stack.Count > 0)
+			{
+				sb.Insert(0, "/" + stack.Pop());
+			}
+
+			return sb.Length == 0 ? "/" : sb.ToString();
+		}
+
+		public static string SimplifyPath2(string path)
+		{
+			Stack<string> stk = new Stack<string>();
+
+			foreach (string p in path.Split('/'))
+			{
+				switch (p)
+				{
+					case ".":
+					case "":
+						break;
+					case "..":
+						if (stk.Count > 0)
+							stk.Pop();
+						break;
+					default:
+						stk.Push(p);
+						break;
+				}
+			}
+
+			string[] str = new string[stk.Count];
+			int len = stk.Count;
+			for (int i = len - 1; i >= 0; i--)
+			{
+				str[i] = stk.Pop();
+			}
+
+			return $"/{string.Join("/", str)}";
+		}
+
+		static string ComputeSha256Hash(string rawData)
+		{
+			// Create a SHA256   
+			using (SHA256 sha256Hash = SHA256.Create())
+			{
+				// ComputeHash - returns byte array  
+				byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+
+				// Convert byte array to a string   
+				StringBuilder builder = new StringBuilder();
+				for (int i = 0; i < bytes.Length; i++)
+				{
+					builder.Append(bytes[i].ToString("x2"));
+				}
+				return builder.ToString();
+			}
+		}
+
+		/*
+		 * Leetcode 224: basic calculator
+		 * Given a string s representing a valid expression, implement a basic calculator to evaluate it, and return the result of the evaluation.
+		 * Input: s = "(1+(4+5+2)-3)+(6+8)"
+		 * Output: 23
+		 */
+		public static int Calculate(string s)
+		{
+			Stack<int> stack = new Stack<int>();
+			int operand = 0;
+			int result = 0; // For the on-going result
+			int sign = 1;  // 1 means positive, -1 means negative
+
+			for (int i = 0; i < s.Length; i++)
+			{
+
+				char ch = s[i];
+				if (Char.IsDigit(ch))
+				{
+
+					// Forming operand, since it could be more than one digit
+					operand = 10 * operand + (int)(ch - '0');
+
+				}
+				else if (ch == '+')
+				{
+
+					// Evaluate the expression to the left,
+					// with result, sign, operand
+					result += sign * operand;
+
+					// Save the recently encountered '+' sign
+					sign = 1;
+
+					// Reset operand
+					operand = 0;
+
+				}
+				else if (ch == '-')
+				{
+
+					result += sign * operand;
+					
+					sign = -1;
+					operand = 0;
+
+				}
+				else if (ch == '(')
+				{
+
+					// Push the result and sign on to the stack, for later
+					// We push the result first, then sign
+					stack.Push(result);
+					stack.Push(sign);
+
+					// Reset operand and result, as if new evaluation begins for the new sub-expression
+					sign = 1;
+					result = 0;
+
+				}
+				else if (ch == ')')
+				{
+
+					// Evaluate the expression to the left
+					// with result, sign and operand
+					result += sign * operand;
+
+					// ')' marks end of expression within a set of parenthesis
+					// Its result is multiplied with sign on top of stack
+					// as stack.pop() is the sign before the parenthesis
+					result *= stack.Pop();
+
+					// Then add to the next operand on the top.
+					// as stack.pop() is the result calculated before this parenthesis
+					// (operand on stack) + (sign on stack * (result from parenthesis))
+					result += stack.Pop();
+
+					// Reset the operand
+					operand = 0;
+				}
+			}
+
+			return result + (sign * operand);
+		}
+
+		/*
+		 * Leetcode 1849: Splitting a String Into Descending Consecutive Values
+		 * Input: s = "050043"
+		 * Output: true
+		 * Explanation: s can be split into ["05", "004", "3"] with numerical values [5,4,3].
+		 * The values are in descending order with adjacent values differing by 1.
+		 */
+		public static bool SplitString(String s)
+		{
+			char[] chars = s.ToCharArray();
+			long value = 0;
+			for (int i = 0; i < chars.Length - 1; i++)
+			{
+				value = value * 10 + chars[i] - '0';
+				bool result = dfs(chars, i + 1, value - 1);
+				if (result)
+				{
+					return true;
+				}
+			}
+
+			return false;
+
+			bool dfs(char[] rest, int start, long target)
+			{
+				if (start == chars.Length)
+				{
+					return true;
+				}
+
+				long val = 0;
+				for (int i = start; i < chars.Length; i++)
+				{
+					val = val * 10 + chars[i] - '0';
+					if (val != target)
+					{
+						continue;
+					}
+					else
+					{
+						bool result = dfs(rest, i + 1, val - 1);
+						if (result)
+						{
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+
+		}
+
+		static void DoSomething(int i)
+		{
+			Console.WriteLine(i);
+		}
+
+		static double CalculateSomething(int i)
+		{
+			return (double)i / 2;
+		}
+
+		public static int seatsCount(int N, string S)
+		{
+			if (string.IsNullOrEmpty(S))
+				return N * 3;
+
+			string[][] seatMap = new string[N][];
+
+			for(int i = 0; i < N; i++)
+			{
+				int j = 0;
+				seatMap[i] = new string[10];
+				while(j < 8)
+				{
+					seatMap[i][j] = (i + 1).ToString() + Convert.ToChar(Convert.ToInt32('A') + j);
+					j++;
+				}
+				seatMap[i][8] = (i + 1).ToString() + 'J';
+				seatMap[i][9] = (i + 1).ToString() + 'K';
+			}
+
+			string[] reserved = S.Split(' ');
+			Array.Sort(reserved);
+
+
+			int[][] dp = new int[N][];
+			for (int i = 0; i < N; i++)
+			{
+				dp[i] = new int[3] { 3, 4, 3};
+				
+			}
+
+
+			foreach (string r in reserved)
+			{
+				for (int i = 0; i < N; i++)
+				{
+					if (seatMap[i].Contains(r))
+					{
+						if (r.Contains('A') || r.Contains('B') || r.Contains('C'))
+						{
+							dp[i][0] -= 1;
+						}
+
+						if (r.Contains('D') || r.Contains('G'))
+						{
+							dp[i][1] -= 1;
+						}
+
+						if (r.Contains('E') || r.Contains('F'))
+						{
+							dp[i][1] = 0;
+						}
+
+						if ( r.Contains('H') || r.Contains('J') || r.Contains('K'))
+						{
+							dp[i][2] -= 1;
+						}
+
+					}
+				}
+			}
+
+			int res = 0;
+
+			foreach(int[] row in dp)
+			{
+				foreach(int sn in row)
+				{
+
+					if (sn >= 3)
+						res++;
+				}
+
+			}
+
+			return res;
+
+		}
+
+
 		static void Main(string[] args)
 		{
+			int[][] edges = new int[][] {
+				new int[] { 0, 1},
+				new int[] { 0, 2},
+				new int[] { 3, 4},
+			};
+
+			CountComponents(5, edges);
+
+			int[][] courses = new int[][] {
+				new int[] { 0, 1 },
+				new int[] { 0, 2},
+				new int[] { 1, 3},
+				new int[] { 1, 4 },
+				new int[] { 3, 4},
+			};
+
+			CanFinish(5, courses);
+
+			int[][] flights = new int[][] {
+				new int[] { 1, 4 },
+				new int[] { 2, 6},
+				new int[] { 9, 12},
+				new int[] { 5, 9 },
+				new int[] { 5, 12},
+			};
+
+			MeetingRooms(flights);
+
+			seatsCount(2, "1A 2D 2G 1C");
+
+			FourSum(new int[] { 2, 2, 2, 2, 2 }, 8);
+
+			combinatonsOfTwoNumber(new int[] { 3, 5}, 334);
+
+			NumberToWords(1234);
+
+
+			WordDictionary wordDictionary = new WordDictionary();
+			wordDictionary.AddWord("bad");
+			wordDictionary.AddWord("dad");
+			wordDictionary.AddWord("mad");
+			wordDictionary.Search(".ad");
+
+
+
+			//Action and Func sample
+			Action<int> myAction = new Action<int>(DoSomething);
+			myAction(123);           // Prints out "123"
+									 // can be also called as myAction.Invoke(123);
+
+			Func<int, double> myFunc = new Func<int, double>(CalculateSomething);
+			Console.WriteLine(myFunc(5));   // Prints out "2.5"
+
+			SplitString("050043");
+
+			Calculate("(1+(4+5+2)-3)+(6+8)");
+
+			PalindromePartition("aab");
+
+			Console.WriteLine(canFormPalindrome("mmrrsso"));
+
+			Search(new int[] { 4, 5, 6, 7, 0, 1, 2 }, 0);
+
+			// Polymorphism at work #1: a Rectangle, Triangle and Circle
+			// can all be used whereever a Shape is expected. No cast is
+			// required because an implicit conversion exists from a derived
+			// class to its base class.
+			var shapes = new List<Shape>
+						{
+							new Rectangle(),
+							new Triangle(),
+							new Circle()
+						};
+
+			// Polymorphism at work #2: the virtual method Draw is
+			// invoked on each of the derived classes, not the base class.
+			foreach (var shape in shapes)
+			{
+				shape.Draw();
+			}
+			/* Output:
+                Drawing a rectangle
+                Performing base class drawing tasks
+                Drawing a triangle
+                Performing base class drawing tasks
+                Drawing a circle
+                Performing base class drawing tasks
+            */
+
+			// Creates one delegate for each method. For the instance method, an
+			// instance (mySC) must be supplied. For the static method, use the
+			// class name.
+			mySampleClass mySC = new mySampleClass();
+			myMethodDelegate myD1 = new myMethodDelegate(mySC.myStringMethod);
+			myMethodDelegate myD2 = new myMethodDelegate(mySampleClass.mySignMethod);
+
+			// Invokes the delegates.
+			Console.WriteLine("{0} is {1}; use the sign \"{2}\".", 5, myD1(5), myD2(5));
+			Console.WriteLine("{0} is {1}; use the sign \"{2}\".", -3, myD1(-3), myD2(-3));
+			Console.WriteLine("{0} is {1}; use the sign \"{2}\".", 0, myD1(0), myD2(0));
+
+
+			SubarraySumII(new int[] { 1, -1, 1, 1, 1, 1, 1, 1 }, 3);
+
+			maximumSubArrayK2(new int[] { 1, 2, 6, 2, 4, 1 }, 3);
+
+			AngleClock(12, 15);
+
+
+			CanReach("01", 1, 1);
+
+			/*
+			 * Parallel computing
+			 * 
+			 */
+			// 2 million
+			var limit = 2_000_000;
+			var numbers = Enumerable.Range(0, limit).ToList();
+
+			var watch = Stopwatch.StartNew();
+			var primeNumbersFromForeach = ParallelExample.GetPrimeList(numbers);
+			watch.Stop();
+
+			var watchForParallel = Stopwatch.StartNew();
+			var primeNumbersFromParallelForeach = ParallelExample.GetPrimeListWithParallel(numbers);
+			watchForParallel.Stop();
+
+			Console.WriteLine($"Classical foreach loop | Total prime numbers : {primeNumbersFromForeach.Count} | Time Taken : {watch.ElapsedMilliseconds} ms.");
+			Console.WriteLine($"Parallel.ForEach loop  | Total prime numbers : {primeNumbersFromParallelForeach.Count} | Time Taken : {watchForParallel.ElapsedMilliseconds} ms.");
+
+			//Console.WriteLine("Press any key to exit.");
+			//Console.ReadLine();
+
+
+			string[] serverName = new string[] { "Inidana", "Califolia", "Washionton", "Texas", "Alabama",
+			"Alaska", "Arizona", "colorado", "Delaware", "Florida", "Georgia", "Hawaii"};
+
+			Dictionary<int, string> distributionTable = new Dictionary<int, string>();
+
+			foreach(string name in serverName)
+			{
+				string hs = name.GetHashCode().ToString();
+				int lastDigitalHashCode = Int16.Parse(hs.Substring(hs.Length - 1));
+
+				if (distributionTable.ContainsKey(lastDigitalHashCode))
+				{
+					distributionTable[lastDigitalHashCode] = name;
+				}
+				else
+				{
+					distributionTable.Add(lastDigitalHashCode, name);
+				}
+			}
+
+			//.NET string object has a GetHashCode() function.It returns an integer. Convert it into a hex and then to an 8 characters long string.
+		   string hashCode = String.Format("{0:X}", "abcdef".GetHashCode());
+
+
+		   Console.WriteLine(ComputeSha256Hash("Mahesh"));
+
+			int[][] obstacles = new int[][] {
+				new int[] { 0,0,0 },
+				new int[] { 0,1,0},
+				new int[] { 0,0,0}
+			};
+
+
+			UniquePathsWithObstacles(obstacles);
+
+			int[][] pathsum = new int[][] {
+				new int[] { 1,3,1 },
+				new int[] { 1,5,1},
+				new int[] { 4,2,1}
+			};
+
+			MinPathSum(pathsum);
+
+			combineTheGivenNumber(new int[] { 12, 21, 121, 11, 1}, 121121);
+
+			MaxRepeating("ababcbabc", new string[] { "ab", "babc", "bca" });
+
+
+			FirstMissingPositive(new int[] { 3, 4, -1, 1 });
+
+			UniquePaths(3, 3);
+
+			SimplifyPath("/a/b/c/../..");
+
+			List<int> weights = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 7, 9 };
+			getStonesWeight(weights);
+
+			int[][] intervals = new int[][] {
+				new int[] { 1, 2 },
+				new int[] { 3, 5 },
+				new int[] { 6, 7 },
+				new int[] { 8, 10 },
+				new int[] { 12, 16 },
+			};
+
+
+			int[] newInterval = new int[] { 4, 8 };
+
+			Merge(intervals);
+
+			Insert(intervals, newInterval);
+
+
+			char[][] islands = new char[][] {
+				new char[] { '1','1','1','1','0' },
+				new char[] { '1','1','0','1','0' },
+				new char[] { '1','1','0','1','0' },
+				new char[] { '0', '0', '0', '0', '0'}
+			};
+
+			NumIslands2(islands);
+
+			PointSystem ps = new PointSystem();
+
+			Console.WriteLine("getPoint('Bob') ->" + ps.getPoint("Bob"));
+			Console.WriteLine("getPoint('Alice') ->" + ps.getPoint("Alice"));
+			Console.WriteLine("getPoint('Bob') ->" + ps.getPoint("Bob"));
+			Console.WriteLine("getPoint('Alice') ->" + ps.getPoint("Alice"));
+			Console.WriteLine("getPoint('Bob') ->" + ps.getPoint("Bob"));
+			Console.WriteLine("getPoint('Scott') ->" + ps.getPoint("Scott"));
+			Console.WriteLine("getPoint('Alice') ->" + ps.getPoint("Alice"));
+			Console.WriteLine("getPoint('Alice') ->" + ps.getPoint("Alice"));
 
 			MyPow(2, -5);
 
@@ -3551,7 +6459,7 @@ namespace LeedCodeTest
 
 			CountAndSay(4);
 
-			nextPermutation(new int[] { 1, 2, 3, 9, 8, 7, 6, 5 });
+			NextPermutation(new int[] { 1, 5, 8, 4, 7, 6, 5, 3, 1});
 
 			GenerateParenthesis(3);
 
@@ -3762,6 +6670,8 @@ namespace LeedCodeTest
 			string[] worddic = new string[] { "a", "c", "b", "b", "a" };
 			ShortestDistance(worddic, "a", "b");
 
+			MinDistance("horse", "ros");
+
 			//Rob(new int[] { 1,2, 3,1 });
 			//Rob(new int[] { 2, 7, 9, 3, 1 });
 			//Rob(new int[] { 1,2, 1, 1 });
@@ -3842,8 +6752,11 @@ namespace LeedCodeTest
 			string[] words = new string[] { "Apple", "Melon", "Orange", "Watermelon" };
 
 			string[] parts = new string[] { "a", "mel", "lon", "el", "An" };
-			BinaryTree bt = new BinaryTree();
 			
+			BinaryTree bt = new BinaryTree();
+
+			bt.BuildTree(new int[] { 3, 9, 20, 15, 7 }, new int[] { 9, 3, 15, 20, 7 });
+
 
 			string s = "civilwartestingwhetherthatnaptionoranynartionsoconceivedandsodedicatedcanlongendureWeareqmetonagreatbattlefiemldoftzhatwarWehavecometodedicpateaportionofthatfieldasafinalrestingplaceforthosewhoheregavetheirlivesthatthatnationmightliveItisaltogetherfangandproperthatweshoulddothisButinalargersensewecannotdedicatewecannotconsecratewecannothallowthisgroundThebravelmenlivinganddeadwhostruggledherehaveconsecrateditfaraboveourpoorponwertoaddordetractTgheworldadswfilllittlenotlenorlongrememberwhatwesayherebutitcanneverforgetwhattheydidhereItisforusthelivingrathertobededicatedheretotheulnfinishedworkwhichtheywhofoughtherehavethusfarsonoblyadvancedItisratherforustobeherededicatedtothegreattdafskremainingbeforeusthatfromthesehonoreddeadwetakeincreaseddevotiontothatcauseforwhichtheygavethelastpfullmeasureofdevotionthatweherehighlyresolvethatthesedeadshallnothavediedinvainthatthisnationunsderGodshallhaveanewbirthoffreedomandthatgovernmentofthepeoplebythepeopleforthepeopleshallnotperishfromtheearth";
 
@@ -3979,6 +6892,20 @@ namespace LeedCodeTest
 
 			MaxProfit(new int[] { 3,2,6,5,0,3 });
 
+
+			ClassB cb = new ClassB();
+			ClassA ca = cb;
+			ca.foo(); // Prints A::foo
+			cb.foo(); // Prints B::foo
+			ca.bar(); // Prints B::bar
+			cb.bar(); // Prints B::bar
+
+			Entity.SetNextSerialNo(1000);
+			Entity e1 = new Entity();
+			Entity e2 = new Entity();
+			Console.WriteLine(e1.GetSerialNo());          // Outputs "1000"
+			Console.WriteLine(e2.GetSerialNo());          // Outputs "1001"
+			Console.WriteLine(Entity.GetNextSerialNo());  // Outputs "1002"
 		}
 	}
 }

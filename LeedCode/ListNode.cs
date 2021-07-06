@@ -141,10 +141,60 @@ namespace LinkedListStructure
 				current.next = pres;
 				pres = current;
 				current = next;
-
 			}
 
 			return pres;
+		}
+
+		/*
+		 * Leetcode 92:  Reverse Linked List II
+		 * Given the head of a singly linked list and two integers left and right where left <= right, 
+		 * reverse the nodes of the list from position left to position right, and return the reversed list..
+		 * Input: head = [1,2,3,4,5], left = 2, right = 4
+		 * Output: [1,4,3,2,5]
+		 */
+		public ListNode ReverseBetween(ListNode head, int left, int right)
+		{
+			if (head == null) return null;
+
+			ListNode prev = null;
+			ListNode current_node = head;
+
+			while (left > 1)
+			{
+				prev = current_node;
+				current_node = current_node.next;
+
+				left--;
+				right--;
+			}
+
+			ListNode connection = prev;
+			ListNode tail = current_node;
+
+			while (right > 0)
+			{
+				ListNode next_node = current_node.next;
+				current_node.next = prev;
+				prev = current_node;
+				current_node = next_node;
+
+				right--;
+			}
+
+			if (connection != null)
+			{
+				connection.next = prev;
+			}
+			else
+			{
+				head = prev;
+			}
+
+			tail.next = current_node;
+
+			return head;
+
 		}
 
 		/* 19. Remove Nth Node From End of List
@@ -248,62 +298,69 @@ namespace LinkedListStructure
 			return dummy.next;
 		}
 
+		/*
+		 * Leetcode 23: Merge k Sorted Lists
+		 * You are given an array of k linked-lists lists, each linked-list is sorted in ascending order.
+		 * 
+		 */
+		public ListNode MergeKLists(ListNode[] lists)
+		{
+			if (lists == null || lists.Length == 0) return null;
+
+			while (lists.Length > 1)
+			{
+				List<ListNode> mergedLists = new List<ListNode>();
+
+				for (int i = 0; i < lists.Length; i += 2)
+				{
+
+					ListNode l1 = lists[i];
+					ListNode l2 = i + 1 < lists.Length ? lists[i + 1] : null;
+
+					mergedLists.Add(MergeTwoLists(l1, l2));
+				}
+
+				lists = mergedLists.ToArray();
+
+			}
+
+			return lists[0];
+
+		}
+
+		/*
+		 * Leetcode 21: Merge two list
+		 * 
+		 * 
+		 */
 		public static ListNode MergeTwoLists(ListNode l1, ListNode l2)
 		{
-			if (l1 == null && l2 == null) return null;
-			if (l1 == null && l2 != null) return l2;
-			if (l1 != null && l2 == null) return l1;
-
-			Dictionary<int, int> dicNodeValue = new Dictionary<int, int>();
-			ListNode sortedNode = new ListNode();
-
-			int i = 0;
-			while (l1 != null)
-			{
-				dicNodeValue[i] = l1.val;
-				if (l1 != null)
-				{
-					l1 = l1.next;
-				}
-				i++;
-			}
-
-
-			while (l2 != null)
-			{
-				dicNodeValue[i] = l2.val;
-				if (l2 != null)
-				{
-					l2 = l2.next;
-				}
-				i++;
-			}
-
-			int j = 0;
 
 			ListNode dumy = new ListNode();
-			foreach (KeyValuePair<int, int> entry in dicNodeValue.OrderBy(c => c.Value))
+			ListNode tail = dumy;
+
+			while (l1 != null && l2 != null)
 			{
-				if (j == 0)
+				if (l1.val < l2.val)
 				{
-					sortedNode.val = entry.Value;
-					sortedNode.next = dumy;
-				}
-				else if (j < dicNodeValue.Count - 1)
-				{
-					ListNode newNode = new ListNode();
-					dumy.val = entry.Value;
-					dumy.next = newNode;
-					dumy = dumy.next;
+					tail.next = l1;
+					l1 = l1.next;
 				}
 				else
 				{
-					dumy.val = entry.Value;
+					tail.next = l2;
+					l2 = l2.next;
 				}
-				j++;
+
+				tail = tail.next;
 			}
 
-			return sortedNode;
+			if (l1 != null)
+				tail.next = l1;
+			else if (l2 != null)
+				tail.next = l2;
+
+			return dumy.next;
 		}
 
 		public static void DeleteNode(ListNode node)

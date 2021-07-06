@@ -8,6 +8,71 @@ namespace RunningSumArray
 {
     public class Graph
     {
+        public class Node
+        {
+            public int val;
+            public IList<Node> neighbors;
+
+            public Node()
+            {
+                val = 0;
+                neighbors = new List<Node>();
+            }
+
+            public Node(int _val)
+            {
+                val = _val;
+                neighbors = new List<Node>();
+            }
+
+            public Node(int _val, List<Node> _neighbors)
+            {
+                val = _val;
+                neighbors = _neighbors;
+            }
+        }
+
+
+        /*
+         * Leetcode 133: Clone Graph
+         * Given a reference of a node in a connected undirected graph.
+         * Return a deep copy (clone) of the graph.
+         */
+        public Node CloneGraph(Node node)
+        {
+            var dict = new Dictionary<int, Node>();
+
+            if (node != null)
+            {
+                DFS(node, dict);
+                return dict[node.val];
+            }
+
+            return null;
+        }
+
+        void DFS(Node node, Dictionary<int, Node> dict)
+        {
+            if (!dict.ContainsKey(node.val))
+            {
+                dict[node.val] = new Node(node.val);
+            }
+
+            if (!dict[node.val].neighbors.Any())
+            {
+                foreach (var n in node.neighbors)
+                {
+                    if (!dict.ContainsKey(n.val))
+                    {
+                        dict[n.val] = new Node(n.val);
+                    }
+                    dict[node.val].neighbors.Add(dict[n.val]);
+                    DFS(n, dict);
+                }
+            }
+        }
+
+
         public class Vertex
         {
             /// <summary>
