@@ -20,7 +20,7 @@ namespace TreeStructure
 			_root = null;
 		}
 
-		
+
 
 		TreeNode<int> deleteFromBST(TreeNode<int> t, int[] queries)
 		{
@@ -32,7 +32,7 @@ namespace TreeStructure
 		TreeNode<int> deleteFromBSTSingle(TreeNode<int> root, int key)
 		{
 			if (root == null) return root;
-			
+
 			if (root.value == key)
 			{
 				if (root.left != null)
@@ -203,67 +203,61 @@ namespace TreeStructure
 		 * 
 		 * 
 		 */
-		public class Codec
+		// Encodes a tree to a single string.
+		public string serialize(TreeNode root)
 		{
+			List<string> res = new List<string>();
 
-			// Encodes a tree to a single string.
-			public string serialize(TreeNode root)
+			dfs(root);
+
+			return string.Join(",", res);
+
+			void dfs(TreeNode node)
 			{
-				List<string> res = new List<string>();
 
-				dfs(root);
-
-				return string.Join(",", res);
-
-				void dfs(TreeNode node)
+				if (node == null)
 				{
-
-					if (node == null)
-					{
-						res.Add("N");
-						return;
-					}
-
-					res.Add(node.val.ToString());
-
-					dfs(node.left);
-					dfs(node.right);
-
+					res.Add("N");
+					return;
 				}
 
+				res.Add(node.val.ToString());
 
+				dfs(node.left);
+				dfs(node.right);
 
 			}
 
-			// Decodes your encoded data to tree.
-			public TreeNode deserialize(string data)
+
+
+		}
+
+		// Decodes your encoded data to tree.
+		public TreeNode deserialize(string data)
+		{
+			string[] vals = data.Split(',');
+			int i = 0;
+
+			return dfs();
+
+			TreeNode dfs()
 			{
-				string[] vals = data.Split(',');
-				int i = 0;
-
-				return dfs();
-
-				TreeNode dfs()
+				if (vals[i] == "N")
 				{
-					if (vals[i] == "N")
-					{
-						i++;
-						return null;
-					}
-
-					TreeNode node = new TreeNode(Int16.Parse(vals[i].ToString()));
 					i++;
-
-					node.left = dfs();
-					node.right = dfs();
-
-					return node;
+					return null;
 				}
 
+				TreeNode node = new TreeNode(Int16.Parse(vals[i].ToString()));
+				i++;
 
+				node.left = dfs();
+				node.right = dfs();
 
+				return node;
 			}
 		}
+
 
 		public void Insert(int data)
 		{

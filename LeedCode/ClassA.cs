@@ -29,4 +29,16 @@ namespace RunningSumArray
             Console.WriteLine("B::bar()");
         }
     }
+
+    public class ClassC : ClassB
+    {
+        public new void foo()
+        {
+            Console.WriteLine("C::foo()");
+        }
+        public override void bar()
+        {
+            Console.WriteLine("C::bar()");
+        }
+    }
 }

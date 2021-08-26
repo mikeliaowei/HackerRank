@@ -1,19 +1,220 @@
-﻿using TreeStructure;
-using LinkedListStructure;
+﻿using LinkedListStructure;
+using RunningSumArray;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RunningSumArray;
-using System.Security.Cryptography;
 using System.Diagnostics;
+using System.Security.Cryptography;
+using TreeStructure;
 using static RunningSumArray.SamplesDelegate;
 
 namespace LeedCodeTest
 {
 	public class Program
 	{
+		/*
+		 * Leetcode 443. String Compression
+		 * Input: chars = ["a","a","b","b","c","c","c"]
+		 * Output: Return 6, and the first 6 characters of the input array should be: ["a","2","b","2","c","3"]
+		 * 
+		 */
+		public static int Compress(char[] chars)
+		{
+			int anchor = 0, write = 0;
+
+			for (int read = 0; read < chars.Length; read++)
+			{
+				if (read + 1 == chars.Length || chars[read + 1] != chars[read])
+				{
+					chars[write++] = chars[anchor];
+					if (read > anchor)
+					{
+						foreach (char c in (read - anchor + 1).ToString())
+							chars[write++] = c;
+					}
+					anchor = read + 1;
+				}
+			}
+
+			return write;
+		}
+
+
+		/*
+		 * Leetcode 435. Non-overlapping Intervals
+		 * Input: intervals = [[1,2],[2,3],[3,4],[1,3]]
+		 * Output: 1
+		 * Explanation: [1,3] can be removed and the rest of the intervals are non-overlapping.
+		 * 
+		 */
+		public static int EraseOverlapIntervals(int[][] intervals)
+		{
+			Array.Sort(intervals, (a, b) => { return a[0] - b[0]; });
+
+			int prev = 0, count = 0;
+
+			for (int i = 1; i < intervals.Length; i++)
+			{
+				if (intervals[prev][1] > intervals[i][0])
+				{
+					if (intervals[prev][1] > intervals[i][1])
+					{
+						prev = i;
+					}
+					count++;
+				}
+				else
+				{
+					prev = i;
+				}
+			}
+
+			return count;
+
+		}
+
+		/*
+		 * Leetcode 371. Sum of Two Integers
+		 * 
+		 */
+		public static int GetSum(int a, int b)
+		{
+
+			int x = Math.Abs(a), y = Math.Abs(b);
+			// ensure that abs(a) >= abs(b)
+			if (x < y) return GetSum(b, a);
+
+			// abs(a) >= abs(b) --> 
+			// a determines the sign
+			int sign = a > 0 ? 1 : -1;
+
+			if (a * b >= 0)
+			{
+				// sum of two positive integers x + y
+				// where x > y
+				while (y != 0)
+				{
+					int answer = x ^ y;
+					int carry = (x & y) << 1;
+					x = answer;
+					y = carry;
+				}
+			}
+			else
+			{
+				// difference of two positive integers x - y
+				// where x > y
+				while (y != 0)
+				{
+					int answer = x ^ y;
+					int borrow = ((~x) & y) << 1;
+					x = answer;
+					y = borrow;
+				}
+
+			}
+
+			return x * sign;
+		}
+
+
+		/*
+		 * Leetcode 347. Top K Frequent Elements
+		 * Your algorithm's time complexity must be better than O(n log n), where n is the array's size.
+		 * 
+		 */
+		public static int[] TopKFrequent(int[] nums, int k)
+		{
+			int[] res = new int[k];
+			Dictionary<int, int> freq = new Dictionary<int, int>();
+
+			for (int i = 0; i < nums.Length; i++)
+			{
+				int key = nums[i];
+				if (freq.ContainsKey(nums[i]))
+				{
+					freq[key] += 1;
+				}
+				else
+				{
+					freq.Add(key, 1);
+				}
+
+			}
+
+			int j = 0;
+			foreach (KeyValuePair<int, int> kvp in freq.OrderByDescending(c => c.Value))
+			{
+				if (kvp.Value != 0)
+				{
+					res[j] = kvp.Key;
+					if (j == k - 1)
+					{
+						break;
+					}
+					j++;
+				}
+			}
+
+			return res;
+
+		}
+
+		/*
+		 *Leetcode 190. Reverse Bits 
+		 * 
+		 * Input: n = 00000010100101000001111010011100
+		 * Output:    964176192 (00111001011110000010100101000000)
+		 */
+		public static uint reverseBits(uint n)
+		{
+			uint res = 0;
+
+			for (int i = 0; i < 32; i++)
+			{
+				var bit = (n >> i) & 1;
+				res = res | (uint)(bit << (31 - i));
+			}
+
+			return res;
+		}
+
+		/*
+		 * Leetcode 153: Find Minimum in Rotated Sorted Array
+		 * Input: nums = [3,4,5,1,2]
+		 * Output: 1
+		 * Explanation: The original array was [1,2,3,4,5] rotated 3 times.
+		 * 
+		 * Algorithm: binary search
+		 * 
+		 */
+		public int FindMin(int[] nums)
+		{
+			int res = nums[0];
+			int l = 0, r = nums.Length - 1;
+
+			while (l <= r)
+			{
+				if (nums[l] < nums[r])
+				{
+					res = Math.Min(res, nums[l]);
+					break;
+				}
+
+				int m = (l + r) / 2;
+				res = Math.Min(res, nums[m]);
+
+				if (nums[m] >= nums[l])
+					l = m + 1;
+				else
+					r = m - 1;
+			}
+
+			return res;
+		}
+
 		/*
 		 * 
 		 * Leetcode 273: Integer to English word
@@ -47,6 +248,97 @@ namespace LeedCodeTest
 			}
 
 			return res.Trim();
+		}
+
+		public struct Bit
+		{
+			public string id;
+			public int price;
+			public int timestamp;
+		}
+
+		public static string[] getWinningBids(List<Bit> bits, int k)
+		{
+
+			//first sorting by prices descending
+			var newList = bits.OrderByDescending(c => c.price).ToList().Take(k);
+
+
+			//we get the largest k bits and we sorting here by timestamp in ascending order
+			return newList.OrderBy(c => c.timestamp).Select(b => b.id).ToArray();
+
+		}
+
+		/*
+		 * Leet code 102: Binary Tree Level Order Traversal BFS
+		 * 
+		 * 
+		 */
+		public IList<IList<int>> LevelOrder(TreeNode root)
+		{
+			List<IList<int>> res = new List<IList<int>>();
+
+			Queue<TreeNode> q = new Queue<TreeNode>();
+			q.Enqueue(root);
+
+			while (q.Count > 0)
+			{
+				int qLen = q.Count;
+				List<int> level = new List<int>();
+				foreach (int i in Enumerable.Range(0, qLen))
+				{
+					TreeNode node = q.Dequeue();
+					if (node != null)
+					{
+						level.Add(node.val);
+						q.Enqueue(node.left);
+						q.Enqueue(node.right);
+					}
+
+				}
+
+				if (level.Count > 0)
+					res.Add(level);
+			}
+
+			return res;
+		}
+
+
+
+		/*
+		 * Leetcode 124: Binary Tree Maximum Path Sum
+		 * 
+		 * Input: root = [1,2,3]
+		 * Output: 6
+		 * Explanation: The optimal path is 2 -> 1 -> 3 with a path sum of 2 + 1 + 3 = 6.
+		 */
+		public int MaxPathSum(TreeNode root)
+		{
+			int[] res = new int[1] { root.val };
+
+			//return max path sum without split
+			int dfs(TreeNode node)
+			{
+
+				if (node == null)
+					return 0;
+
+				int leftMax = dfs(node.left);
+				int rightMax = dfs(node.right);
+				leftMax = Math.Max(leftMax, 0);
+				rightMax = Math.Max(rightMax, 0);
+
+				//compute max path sum WITH split
+				res[0] = Math.Max(res[0], node.val + leftMax + rightMax);
+
+				return node.val + Math.Max(leftMax, rightMax);
+			}
+
+
+			dfs(root);
+
+			return res[0];
 		}
 
 		private static string Helper(int num)
@@ -313,7 +605,7 @@ namespace LeedCodeTest
 			return (int)dumy;
 		}
 
-		
+
 
 		//202. Happy Number
 		/*  
@@ -666,7 +958,7 @@ namespace LeedCodeTest
 					else
 						l = mid + 1;
 				}
-					
+
 			}
 
 			return -1;
@@ -758,23 +1050,92 @@ namespace LeedCodeTest
 			return nums.Length - len;
 		}
 
+		/*
+		 * leetcode 26: Remove Duplicates from Sorted Array
+		 * Do not allocate extra space for another array. You must do this by modifying the input array in-place with O(1) extra memory.
+		 * 
+		 */
 		public static int RemoveDuplicates(int[] nums)
 		{
-			HashSet<int> uniqArray = new HashSet<int>();
 
-			for (int i = 0; i < nums.Length; i++)
+			if (nums.Length <= 1)
 			{
-				uniqArray.Add(nums[i]);
+				return nums.Length;
 			}
 
 			int j = 0;
-			foreach (int item in uniqArray)
+			for (int i = 1; i < nums.Length; i++)
 			{
-				nums[j] = item;
-				j++;
+				if (nums[j] != nums[i])
+				{
+					j++;
+					nums[j] = nums[i];
+				}
 			}
 
-			return uniqArray.Count;
+			return j + 1;
+		}
+
+		/*
+		 * Leetcode 4: Median of Two Sorted Arrays
+		 * 
+		 * Input: nums1 = [1,3], nums2 = [2]
+		 * Output: 2.00000
+		 * Explanation: merged array = [1,2,3] and median is 2.
+		 */
+		public double FindMedianSortedArrays(int[] nums1, int[] nums2)
+		{
+
+			int x = nums1.Length;
+			int y = nums2.Length;
+			if (x > y) return FindMedianSortedArrays(nums2, nums1);
+
+			int l = 0;
+			int r = x;
+
+			while (l <= r)
+			{
+
+				int partX = (l + r) / 2;
+				int partY = (x + y + 1) / 2 - partX;
+
+				// in case left partition has 0 values use Int32.MinValue
+				// in case right partition has 0 values use Int32.MaxValue
+				int maxLeftX = (partX == 0) ? Int32.MinValue : nums1[partX - 1];
+				int minRightX = (partX == x) ? Int32.MaxValue : nums1[partX];
+
+				// similarly for y
+				int maxLeftY = (partY == 0) ? Int32.MinValue : nums2[partY - 1];
+				int minRightY = (partY == y) ? Int32.MaxValue : nums2[partY];
+
+				if (maxLeftX <= minRightY && maxLeftY <= minRightX)
+				{
+					//we have the accurate point and can calculate the median now
+
+					// we calculate the median based on whether the combined length is even or odd
+					if ((x + y) % 2 == 0)
+					{
+						return (double)(Math.Max(maxLeftX, maxLeftY) + Math.Min(minRightX, minRightY)) / 2;
+					}
+					else
+					{
+						return (Math.Max(maxLeftX, maxLeftY));
+					}
+				}
+				else if (maxLeftX > minRightY)
+				{
+					// we drifted more to the right, switch left on nums1, one place at a time
+					r = partX - 1;
+				}
+				else
+				{
+					// we are more to th left, so we move the point of partition to the right, on nums1 one place at a time
+					l = partX + 1;
+				}
+			}
+			// we can come here only if the arrays are not sorted
+			// throw a valid exception
+			throw new Exception();
 		}
 
 		public static bool ParenthesesIsValid(string s)
@@ -933,7 +1294,7 @@ namespace LeedCodeTest
 
 				List<IList<int>> threeSum = ThreeSum(nums, target - nums[i], i + 1).ToList();
 
-				foreach(List<int> lst in threeSum)
+				foreach (List<int> lst in threeSum)
 				{
 					lst.Add(nums[i]);
 					lst.Sort();
@@ -942,7 +1303,7 @@ namespace LeedCodeTest
 
 			}
 
-			List<IList<int>>  dist = 
+			List<IList<int>> dist =
 				res.Select(o =>
 				{
 					var t = o.OrderBy(x => x).Select(i => i.ToString());
@@ -1140,7 +1501,7 @@ namespace LeedCodeTest
 			HashSet<int> hs = new HashSet<int>();
 			int sum1 = 0, sum2 = 0;
 
-			for(int start = 0; start < len; start++)
+			for (int start = 0; start < len; start++)
 			{
 				i = start;
 				j = len - 1 - i;
@@ -1407,7 +1768,7 @@ namespace LeedCodeTest
 		private static void backtrackcombinatonsOfTwoNumber(int index, int[] nums, ref int results, LinkedList<int> permutation, int target)
 		{
 			string str = string.Join("", permutation.ToList());
-			if (!string.IsNullOrEmpty(str)&& Int16.Parse(str) > target)
+			if (!string.IsNullOrEmpty(str) && Int16.Parse(str) > target)
 			{
 				results = Int16.Parse(str);
 				return;
@@ -1416,7 +1777,7 @@ namespace LeedCodeTest
 			//make a choice
 			permutation.AddLast(index % 2 != 0 ? nums[0] : nums[1]);
 
-			backtrackcombinatonsOfTwoNumber(index+1, nums, ref results, permutation, target);
+			backtrackcombinatonsOfTwoNumber(index + 1, nums, ref results, permutation, target);
 
 			//undo the choice
 			permutation.RemoveLast();
@@ -1535,7 +1896,7 @@ namespace LeedCodeTest
 			int length = inputString.Length;
 
 			int i = length - 1;
-			while(i >= 0)
+			while (i >= 0)
 			{
 				reverse.Append(inputString[i]);
 				i--;
@@ -1549,7 +1910,7 @@ namespace LeedCodeTest
 			Dictionary<int, int> dic = new Dictionary<int, int>();
 			int found = 0;
 
-			for(int i = 0; i < a.Length; i++)
+			for (int i = 0; i < a.Length; i++)
 			{
 				if (!dic.ContainsKey(a[i]))
 				{
@@ -1572,7 +1933,7 @@ namespace LeedCodeTest
 
 			if (s.Length == 1) return res;
 
-			for(int i = 0; i < s.Length; i++)
+			for (int i = 0; i < s.Length; i++)
 			{
 				if (!dic.ContainsKey(s[i]))
 				{
@@ -1584,14 +1945,14 @@ namespace LeedCodeTest
 				}
 			}
 
-			foreach(KeyValuePair<char, int> item in dic)
+			foreach (KeyValuePair<char, int> item in dic)
 			{
-				if(item.Value == 1)
+				if (item.Value == 1)
 				{
 					res = item.Key;
 					break;
 				}
-			}		
+			}
 
 			return res;
 		}
@@ -1829,7 +2190,7 @@ namespace LeedCodeTest
 
 			for (int i = 0; i < nums.Length; i++)
 			{
-				if(counter < 3)
+				if (counter < k)
 				{
 					sum += nums[i];
 				}
@@ -2028,7 +2389,7 @@ namespace LeedCodeTest
 
 				if (numbers[i] > numbers[i + 1])
 				{
-					if (i-1 >= 0 && !checkAllPossibles(numbers[i], numbers[i + 1], numbers[i-1]))
+					if (i - 1 >= 0 && !checkAllPossibles(numbers[i], numbers[i + 1], numbers[i - 1]))
 					{
 
 						//Console.WriteLine(string.Format("i = {3}, numbers[i] = {0}, numbers[i+1] = {1}", numbers[i], numbers[i + 1], i));
@@ -2055,7 +2416,7 @@ namespace LeedCodeTest
 
 			foreach (int i in lstRev)
 			{
-				if (i < target1 && i >  target2)
+				if (i < target1 && i > target2)
 				{
 					isAnySmallThan = true;
 					break;
@@ -2142,11 +2503,13 @@ namespace LeedCodeTest
 				{
 					sb.Append(c1);
 					s1 = s1.Substring(1);
-				} else if (string.IsNullOrEmpty(c1) && !string.IsNullOrEmpty(c2))
+				}
+				else if (string.IsNullOrEmpty(c1) && !string.IsNullOrEmpty(c2))
 				{
 					sb.Append(c2);
 					s2 = s2.Substring(1);
-				} else if (!string.IsNullOrEmpty(c1) && string.IsNullOrEmpty(c2))
+				}
+				else if (!string.IsNullOrEmpty(c1) && string.IsNullOrEmpty(c2))
 				{
 					sb.Append(c1);
 					s1 = s1.Substring(1);
@@ -2222,6 +2585,22 @@ namespace LeedCodeTest
 			int rows = grid.Length, cols = grid[0].Length;
 			bool[,] visit = new bool[rows, cols];
 
+			void dfs(int r, int c, bool[,] visited)
+			{
+
+				visited[r, c] = true;
+
+				if (r - 1 >= 0 && !visited[r - 1, c] && grid[r - 1][c] != '0')
+					dfs(r - 1, c,visited);
+				if (r + 1 < grid.Length && !visited[r + 1, c] && grid[r + 1][c] != '0')
+					dfs(r + 1, c, visited);
+				if (c - 1 >= 0 && !visited[r, c - 1] && grid[r][c - 1] != '0')
+					dfs(r, c - 1, visited);
+				if (c + 1 < grid[0].Length && !visited[r, c + 1] && grid[r][c + 1] != '0')
+					dfs(r, c + 1, visited);
+
+			}
+
 
 			int islands = 0;
 
@@ -2235,7 +2614,7 @@ namespace LeedCodeTest
 					{
 
 						islands += 1;
-						dfs(r, c, grid, visit);
+						dfs(r, c, visit);
 
 					}
 				}
@@ -2243,22 +2622,6 @@ namespace LeedCodeTest
 			}
 
 			return islands;
-
-		}
-
-		public void dfs(int r, int c, char[][] grid, bool[,] visited)
-		{
-
-			visited[r, c] = true;
-
-			if (r - 1 >= 0 && !visited[r - 1, c] && grid[r - 1][c] != '0')
-				dfs(r - 1, c, grid, visited);
-			if (r + 1 < grid.Length && !visited[r + 1, c] && grid[r + 1][c] != '0')
-				dfs(r + 1, c, grid, visited);
-			if (c - 1 >= 0 && !visited[r, c - 1] && grid[r][c - 1] != '0')
-				dfs(r, c - 1, grid, visited);
-			if (c + 1 < grid[0].Length && !visited[r, c + 1] && grid[r][c + 1] != '0')
-				dfs(r, c + 1, grid, visited);
 
 		}
 
@@ -2469,7 +2832,7 @@ namespace LeedCodeTest
 
 			int[][] res = new int[k][];
 			int i = 0;
-			foreach (Point item in minHeap.OrderBy(c=>c.distance))
+			foreach (Point item in minHeap.OrderBy(c => c.distance))
 			{
 				if (i < k)
 				{
@@ -2589,29 +2952,29 @@ namespace LeedCodeTest
 		{
 			int max = 0;
 			int sum = 0;
-			for(int i=0; i < grid.Length; i++)
+			for (int i = 0; i < grid.Length; i++)
 			{
 				sum = 0;
 
-				for (int j = 0; j< grid[i].Length; j++)
+				for (int j = 0; j < grid[i].Length; j++)
 				{
 
-					if(grid[i][j] == '0')
+					if (grid[i][j] == '0')
 					{
-						Console.WriteLine("i = "+ i + ", j = " + j);
+						Console.WriteLine("i = " + i + ", j = " + j);
 
 						//left side
-						if (j-1 >= 0 && j-1< grid[i].Length && grid[i][j - 1] == 'E')
+						if (j - 1 >= 0 && j - 1 < grid[i].Length && grid[i][j - 1] == 'E')
 						{
 							sum += 1;
 						}
 						//right side
-						if(j + 1 < grid[i].Length && grid[i][j+ 1] == 'E')
+						if (j + 1 < grid[i].Length && grid[i][j + 1] == 'E')
 						{
 							sum += 1;
 						}
 						//top side
-						if (i-1 >= 0 && i-1 < grid.Length && grid[i-1][j] == 'E')
+						if (i - 1 >= 0 && i - 1 < grid.Length && grid[i - 1][j] == 'E')
 						{
 							sum += 1;
 						}
@@ -2630,28 +2993,157 @@ namespace LeedCodeTest
 			return max;
 		}
 
+		/*
+		 * Leetcode 48: Rotate Image
+		 * You are given an n x n 2D matrix representing an image, rotate the image by 90 degrees (clockwise).
+		 * 
+		 */
 		public static void Rotate(int[][] matrix)
 		{
 
-			int x = matrix.Length;
-			int y = matrix[0].Length;
-			int[][] res = new int[x][];
+			int l = 0, r = matrix.Length - 1;
 
-			for (int i = 0; i < y; i++)
+			while (l < r)
 			{
-				int k = 0;
-				int[] temp = new int[x];
-				for (int j = x - 1; j >= 0; j--)
+				for (int i = 0; i < r - l; i++)
 				{
-					temp[k] = matrix[j][i];
-					k++;
+					int top = l, bottom = r;
+
+					//save the topleft
+					int topLeft = matrix[top][l + i];
+
+					//move bottom left into top left
+					matrix[top][l + i] = matrix[bottom - i][l];
+
+					//move bottom right into bottom left
+					matrix[bottom - i][l] = matrix[bottom][r - i];
+
+					//move top right into bottom right
+					matrix[bottom][r - i] = matrix[top + i][r];
+
+					//move top left into top right
+					matrix[top + i][r] = topLeft;
+
 				}
-				res[i] = temp;
+
+				r--;
+				l++;
 			}
 
-			Array.Copy(res, matrix, res.Length);
+		}
+
+		/*
+		 * Leetcode 424: Longest Repeating Character Replacement
+		 * Input: s = "AABABBA", k = 1
+		 * Output: 4
+		 * Explanation: Replace the one 'A' in the middle with 'B' and form "AABBBBA".
+		 * The substring "BBBB" has the longest repeating letters, which is 4.
+		 * 
+		 */
+		public static int CharacterReplacement(string s, int k)
+		{
+			//Sliting window algorithm
+			Dictionary<char, int> count = new Dictionary<char, int>();
+			int l = 0, res = 0;
+
+			for (int r = 0; r < s.Length; r++)
+			{
+				if (count.ContainsKey(s[r]))
+				{
+					count[s[r]] = count[s[r]] + 1;
+				}
+				else
+				{
+					count.Add(s[r], 1);
+				}
+
+				while ((r - l + 1) - count.Values.Max() > k)
+				{
+					count[s[l]] -= 1;
+					l++;
+				}
+
+				res = Math.Max(res, r - l + 1);
+
+			}
+
+			return res;
 
 		}
+
+		/*
+		 * Leetcode 76: Minimum Window Substring
+		 * 
+		 * Input: s = "ADOBECODEBANC", t = "ABC"
+		 * Output: "BANC"
+		 * Explanation: The minimum window substring "BANC" includes 'A', 'B', and 'C' from string t.
+		 */
+		public static string MinWindow(string s, string t)
+		{
+			if (t.Length == 0) return "";
+
+			Dictionary<char, int> countT = new Dictionary<char, int>();
+			Dictionary<char, int> window = new Dictionary<char, int>();
+
+			foreach (char c in t)
+			{
+				if (!countT.ContainsKey(c))
+				{
+					countT.Add(c, 1);
+				}
+				else
+				{
+					countT[c] += 1;
+				}
+			}
+
+			int have = 0, need = countT.Count, resLen = Int16.MaxValue, l = 0;
+
+			// for save l & r pointer value
+			int[] res = new int[2] { -1, -1 };
+
+			for (int r = 0; r < s.Length; r++)
+			{
+				char c = s[r];
+
+				if (window.ContainsKey(c))
+				{
+					window[c] += 1;
+				}
+				else
+				{
+					window.Add(c, 1);
+				}
+
+				if (countT.ContainsKey(c) && window[c] == countT[c])
+					have += 1;
+
+				while (have == need)
+				{
+					//update our result
+					if ((r - l + 1) < resLen)
+					{
+						res[0] = l;
+						res[1] = r;
+						resLen = r - l + 1;
+					}
+
+					//pop from the left of our window
+					window[s[l]] -= 1;
+					if (countT.ContainsKey(s[l]) && window[s[l]] < countT[s[l]])
+						have -= 1;
+
+					l++;
+				}
+			}
+
+
+			l = res[0];
+
+			return resLen != Int16.MaxValue ? s.Substring(l, resLen) : "";
+
+		}
+
 
 		public static int[][] UpdateMatrix(int[][] mat)
 		{
@@ -2665,23 +3157,23 @@ namespace LeedCodeTest
 				int[] temp = new int[y];
 				for (int j = 0; j < y; j++)
 				{
-					if(mat[i][j] == 0)
+					if (mat[i][j] == 0)
 					{
 						temp[k] = 0;
 					}
 					else
 					{
-						if((j-1>=0 && mat[i][j-1] == 0) 
-							|| (i-1>=0 && mat[i-1][j] == 0)
+						if ((j - 1 >= 0 && mat[i][j - 1] == 0)
+							|| (i - 1 >= 0 && mat[i - 1][j] == 0)
 							|| (i + 1 < x && mat[i + 1][j] == 0)
-							|| (j + 1 < y && mat[i][j+1] == 0))
+							|| (j + 1 < y && mat[i][j + 1] == 0))
 						{
 							temp[k] = 1;
 						}
 						else
 						{
 							int step = 1;
-							while(j - step >= 0)
+							while (j - step >= 0)
 							{
 								if (mat[i][j - step] == 0)
 								{
@@ -2714,9 +3206,9 @@ namespace LeedCodeTest
 							}
 
 							step = 1;
-							while ( i + step < x)
+							while (i + step < x)
 							{
-								if ( mat[i + step][j] == 0)
+								if (mat[i + step][j] == 0)
 								{
 									temp[k] = step;
 									break;
@@ -2902,6 +3394,91 @@ namespace LeedCodeTest
 		}
 
 		/*
+		 * Leetcode 227. Basic Calculator II
+		 * 
+		 * Input: s = "3+2*2"
+		 * Output: 7
+		 */
+		public static int CalculateII(string s)
+		{
+			int num = 0;
+			char pre_opt = '+';
+			s += "+";
+			Stack<int> st = new Stack<int>();
+
+
+			foreach (char c in s)
+			{
+				if (char.IsDigit(c))
+				{
+					num = num * 10 + Int16.Parse(c.ToString());
+				}
+				else if (c == ' ')
+				{
+					continue;
+				}
+				else
+				{
+
+					if (pre_opt == '+')
+					{
+						st.Push(num);
+					}
+					else if (pre_opt == '-')
+					{
+						st.Push(-1 * num);
+					}
+					else if (pre_opt == '*')
+					{
+						st.Push(st.Pop() * num);
+					}
+					else if (pre_opt == '/')
+					{
+						st.Push((int)(st.Pop() / num));
+					}
+
+					num = 0;
+					pre_opt = c;
+				}
+			}
+
+			return st.Sum();
+
+		}
+
+		/*
+		 * 1209. Remove All Adjacent Duplicates in String II
+		 * 
+		 */
+		public static string RemoveDuplicates(string s, int k)
+		{
+			Stack<int> counts = new Stack<int>();
+			char[] sa = s.ToArray();
+
+			int j = 0;
+
+			for (int i = 0; i < s.Length; ++i, ++j)
+			{
+				sa[j] = s[i];
+
+				if (j == 0 || sa[j] != sa[j - 1])
+					counts.Push(1);
+				else
+				{
+					int incremented = counts.Pop() + 1;
+					if (incremented == k)
+						j = j - k;
+					else
+						counts.Push(incremented);
+				}
+
+			}
+
+			return new string(sa, 0, j);
+		}
+
+
+		/*
 		 * Leetcode 139: word break, dp
 		 * Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words.
 		 * Input: s = "leetcode", wordDict = ["leet","code"]
@@ -2968,7 +3545,8 @@ namespace LeedCodeTest
 		{
 			int[] b = new int[n];
 
-			for (int i = 0; i < n; i++){
+			for (int i = 0; i < n; i++)
+			{
 
 				int sum = (i - 1 >= 0 && i - 1 < a.Length ? a[i - 1] : 0) + (i >= 0 && i < a.Length ? a[i] : 0) + (i + 1 >= 0 && i + 1 < a.Length ? a[i + 1] : 0);
 				b[i] = sum;
@@ -2992,9 +3570,10 @@ namespace LeedCodeTest
 				if (i < j)
 				{
 					b[index] = a[i];
-					b[index+1] = a[j];
+					b[index + 1] = a[j];
 					index = index + 2;
-				}else if (i == j)
+				}
+				else if (i == j)
 				{
 					b[index] = a[i];
 					index = index + 1;
@@ -3004,7 +3583,7 @@ namespace LeedCodeTest
 			}
 
 			index = 0;
-			while(index + 1 < b.Length)
+			while (index + 1 < b.Length)
 			{
 				if (b[index] >= b[index + 1])
 				{
@@ -3025,11 +3604,11 @@ namespace LeedCodeTest
 
 			int length = a.Length, starti = 0, j = 0;
 
-			while(starti < length)
+			while (starti < length)
 			{
 				j = starti;
 				dumy = new List<int>();
-				while(j < length)
+				while (j < length)
 				{
 					if (b.Contains(a[j]) && !c.Contains(a[j]))
 					{
@@ -3082,7 +3661,7 @@ namespace LeedCodeTest
 			Dictionary<char, string> pdic = new Dictionary<char, string>();
 			Dictionary<string, string> worddic = new Dictionary<string, string>();
 
-			for(int i=0; i < patterns.Length; i++)
+			for (int i = 0; i < patterns.Length; i++)
 			{
 				if (pdic.ContainsKey(patterns[i]))
 				{
@@ -3110,9 +3689,9 @@ namespace LeedCodeTest
 
 			if (pdic.Count != worddic.Count) return false;
 
-			for(int j =0; j < pdic.Count; j++)
+			for (int j = 0; j < pdic.Count; j++)
 			{
-				if(pdic.ElementAt(j).Value != worddic.ElementAt(j).Value)
+				if (pdic.ElementAt(j).Value != worddic.ElementAt(j).Value)
 				{
 					isMatched = false;
 					break;
@@ -3128,7 +3707,7 @@ namespace LeedCodeTest
 
 			int rest = year % 100;
 
-			return century +  (rest > 0? 1: 0);
+			return century + (rest > 0 ? 1 : 0);
 		}
 
 		/*
@@ -3216,7 +3795,7 @@ namespace LeedCodeTest
 				var rowHash = new HashSet<char>();
 				var colHash = new HashSet<char>();
 				var subHash = new HashSet<char>();
-				
+
 				var rowindex = i / 3;
 				var colindex = i % 3;
 
@@ -3384,7 +3963,7 @@ namespace LeedCodeTest
 		{
 			bool isCrypt = false;
 			Dictionary<char, char> dic = new Dictionary<char, char>();
-			for(int i = 0; i < solution.Length; i++)
+			for (int i = 0; i < solution.Length; i++)
 			{
 				if (!dic.ContainsKey(solution[i][0]))
 				{
@@ -3407,7 +3986,7 @@ namespace LeedCodeTest
 			}
 
 			j = 0;
-			while(j < crypt[1].Length)
+			while (j < crypt[1].Length)
 			{
 				if (dic.ContainsKey(crypt[1][j]))
 				{
@@ -3443,13 +4022,14 @@ namespace LeedCodeTest
 			int lenght = a.Length;
 			bool[] b = new bool[lenght];
 
-			for(int i = 0; i < lenght; i++)
+			for (int i = 0; i < lenght; i++)
 			{
-				int x = a[i] % (i + 1) == 0 ? a[i]/(i+1):0;
-				if ( x != 0 && x >= l && x <= r)
+				int x = a[i] % (i + 1) == 0 ? a[i] / (i + 1) : 0;
+				if (x != 0 && x >= l && x <= r)
 				{
 					b[i] = true;
-				}else
+				}
+				else
 				{
 					b[i] = false;
 				}
@@ -3468,13 +4048,13 @@ namespace LeedCodeTest
 
 			int i = 0;
 			int j = l2 - 1;
-			while(i < l1 && j >= 0)
+			while (i < l1 && j >= 0)
 			{
 				sb = new StringBuilder();
 				sb.Append(a[i]);
 				sb.Append(b[j]);
 
-				if(Int64.Parse(sb.ToString()) < k)
+				if (Int64.Parse(sb.ToString()) < k)
 				{
 					tiny++;
 				}
@@ -3531,11 +4111,11 @@ namespace LeedCodeTest
 			}
 
 			int sum = 0;
-			for(int j = 0; j< k; j++)
+			for (int j = 0; j < k; j++)
 			{
 				Stack<int> dump = new Stack<int>(new Stack<int>(st));
 				int step = 0;
-				while(dump.Count > 0)
+				while (dump.Count > 0)
 				{
 					sum = 0;
 					step = j;
@@ -3545,7 +4125,7 @@ namespace LeedCodeTest
 						step--;
 					}
 
-					if(sum == s)
+					if (sum == s)
 					{
 						res++;
 					}
@@ -3592,7 +4172,7 @@ namespace LeedCodeTest
 						continue;
 					}
 
-					if(s1[i] < s2[j])
+					if (s1[i] < s2[j])
 					{
 						break;
 					}
@@ -3620,7 +4200,7 @@ namespace LeedCodeTest
 			while (i < s.Length)
 			{
 				int num;
-				if(Int32.TryParse(s[i].ToString(), out num))
+				if (Int32.TryParse(s[i].ToString(), out num))
 				{
 					string newStr = "";
 					if (i == 0)
@@ -3632,7 +4212,7 @@ namespace LeedCodeTest
 						newStr = s.Substring(0, i) + s.Substring(i + 1);
 					}
 
-					if(islexicographically(newStr, t))
+					if (islexicographically(newStr, t))
 					{
 						sum += 1;
 					}
@@ -3724,35 +4304,43 @@ namespace LeedCodeTest
 
 			List<int> res = new List<int>();
 
-			if (matrix.Length == 0)
-				return res;
+			int left = 0, right = matrix[0].Length;
+			int top = 0, bottom = matrix.Length;
 
-			int r1 = 0, r2 = matrix.Length - 1;
-			int c1 = 0, c2 = matrix[0].Length - 1;
-
-			while (r1 <= r2 && c1 <= c2)
+			while (left < right && top < bottom)
 			{
-				for (int c = c1; c <= c2; c++)
-					res.Add(matrix[r1][c]);
-
-				for (int r = r1 + 1; r <= r2; r++)
-					res.Add(matrix[r][c2]);
-
-				if (r1 < r2 && c1 < c2)
+				//get every i in the top row
+				for (int i = left; i < right; i++)
 				{
-
-					for (int c = c2 - 1; c > c1; c--)
-						res.Add(matrix[r2][c]);
-
-					for (int r = r2; r > r1; r--)
-						res.Add(matrix[r][c1]);
-
+					res.Add(matrix[top][i]);
 				}
+				top++;
 
-				r1++;
-				r2--;
-				c1++;
-				c2--;
+				//get every i in the right col
+				for (int i = top; i < bottom; i++)
+				{
+					res.Add(matrix[i][right - 1]);
+				}
+				right--;
+
+				if (!(left < right && top < bottom))
+					break;
+
+				//get every i in the bottom row
+				for (int i = right - 1; i > left - 1; i--)
+				{
+					res.Add(matrix[bottom - 1][i]);
+				}
+				bottom--;
+
+				//get every i in the left col
+				for (int i = bottom - 1; i > top - 1; i--)
+				{
+					res.Add(matrix[i][left]);
+				}
+				left++;
+
+
 			}
 
 			return res;
@@ -4284,12 +4872,12 @@ namespace LeedCodeTest
 			List<int> lst = new List<int>();
 			int i = 0, j = 0, cal = 0;
 
-			while ( i < a.Length - (m-1))
+			while (i < a.Length - (m - 1))
 			{
 				j = 0;
-				while(j < m)
+				while (j < m)
 				{
-					lst.Add(a[i+j]);
+					lst.Add(a[i + j]);
 					j++;
 				}
 
@@ -4307,9 +4895,9 @@ namespace LeedCodeTest
 			int segmentNum = 0;
 			int index = 0;
 
-			while(index < lst.Count - 1)
+			while (index < lst.Count - 1)
 			{
-				if( lst.ElementAt(index) + lst.ElementAt(index+1) >=target)
+				if (lst.ElementAt(index) + lst.ElementAt(index + 1) >= target)
 				{
 					segmentNum += 1;
 				}
@@ -4414,7 +5002,7 @@ namespace LeedCodeTest
 			SortedList<int, char> dic2 = new SortedList<int, char>();
 
 			int i = 0;
-			while(i < alen)
+			while (i < alen)
 			{
 				dic1.Add(i, a.ToString()[i]);
 				i++;
@@ -4452,56 +5040,44 @@ namespace LeedCodeTest
 		 */
 		public static string decodeBracketsString(string s)
 		{
-			Stack<int> numstack = new Stack<int>();
-			Stack<string> strstack = new Stack<string>();
+			Stack<int> countStack = new Stack<int>();
+			Stack<StringBuilder> stringStack = new Stack<StringBuilder>();
 
-			//parse the string;
-			int i = 0;
-			string str = "";
-			while (i < s.Length)
+			StringBuilder currentString = new StringBuilder();
+
+			int k = 0;
+			foreach (char ch in s.ToArray())
 			{
-				if (Char.IsDigit(s[i]))
+				if (Char.IsDigit(ch))
 				{
-					int num = 0;
-					while (i < s.Length && Char.IsDigit(s[i]))
-					{
-						num = num * 10 + (s[i] - '0');
-						i++;
-					}
-
-					numstack.Push(num);
-					strstack.Push(str);
-
-					str = "";
+					k = k * 10 + ch - '0';
 				}
-				else if (Char.IsLetter(s[i]))
+				else if (ch == '[')
 				{
-					while (i < s.Length && Char.IsLetter(s[i]))
-					{
-						str += s[i];
-						i++;
-					}
+					// push the number k to countStack
+					countStack.Push(k);
+					// push the currentString to stringStack
+					stringStack.Push(currentString);
+					// reset currentString and k
+					currentString = new StringBuilder();
+					k = 0;
 				}
-				else if (s[i] == ']')
+				else if (ch == ']')
 				{
-					//take the string from the stack out,
-					StringBuilder temp = new StringBuilder(strstack.Pop());
-					int multipler = numstack.Pop();
-					//str has the current string for the multiplier
-					for (int j = 0; j < multipler; j++)
+					StringBuilder decodedString = stringStack.Pop();
+					// decode currentK[currentString] by appending currentString k times
+					for (int currentK = countStack.Pop(); currentK > 0; currentK--)
 					{
-						temp.Append(str);
+						decodedString.Append(currentString);
 					}
-					//switch the str with temp;
-					str = temp.ToString();
-					i++;
+					currentString = decodedString;
 				}
 				else
-					i++;
-
+				{
+					currentString.Append(ch);
+				}
 			}
-
-			return str; //it has the full string;
+			return currentString.ToString();
 		}
 
 		int segmentsCovering(int[][] segments)
@@ -4532,80 +5108,6 @@ namespace LeedCodeTest
 			}
 
 			return result;
-		}
-
-		public static string processBracketsDuplicate(string str)
-		{
-			int len = str.Length;
-
-			if (len <= 1) return str;
-
-			Stack<char> st = new Stack<char>();
-
-			int starti = 0, endi = 0;
-			int i = 0;
-
-			string temp = "";
-			int repeatNub = 0;
-			int brascketNub = 0;
-
-			while (i < len && str.IndexOf('[') != -1)
-			{
-				//Console.WriteLine("i = " + i);
-
-				if (str[i] == '[')
-				{
-					st.Push('[');
-
-					if (brascketNub == 0)
-					{
-						starti = i + 1;
-						repeatNub = Int16.Parse(str[i - 1].ToString());
-					}
-
-					brascketNub += 1;
-					//Console.WriteLine(string.Format("stack push [ at {0}, and starti = {1}, repeatNub = {2}", i, starti, repeatNub));
-				}
-
-				if (str[i] == ']')
-				{
-					st.Pop();
-					endi = i;
-
-					//Console.WriteLine(string.Format("stack pop ] at {0}, and endi = {1}", i, endi));
-
-					if (st.Count == 0)
-					{
-
-						temp = str.Substring(0, starti - 2);
-
-						int j = 0;
-						while (j < repeatNub)
-						{
-							if (starti == endi)
-								temp += str.Substring(starti, 1);
-							else
-								temp += str.Substring(starti, endi-starti);
-							j++;
-						}
-
-						temp += str.Substring(endi + 1);
-
-						repeatNub = 0;
-						brascketNub = 0;
-						str = temp;
-						len = str.Length;
-						i = 0;
-						continue;
-					}
-				}
-
-
-
-				i++;
-			}
-
-			return str;
 		}
 
 		public static string ReformatDate(string date)
@@ -4684,7 +5186,7 @@ namespace LeedCodeTest
 			LinkedList<int> perm = new LinkedList<int>();
 			Dictionary<int, int> dic = new Dictionary<int, int>();
 
-			foreach(int n in nums)
+			foreach (int n in nums)
 			{
 				if (!dic.ContainsKey(n))
 				{
@@ -4696,7 +5198,7 @@ namespace LeedCodeTest
 				}
 			}
 
-			backtrackUnique(nums, results, perm,  dic);
+			backtrackUnique(nums, results, perm, dic);
 
 			return results;
 		}
@@ -4743,13 +5245,13 @@ namespace LeedCodeTest
 		private static void backtrackPermutaion(int[] nums, List<IList<int>> results, LinkedList<int> permutation, bool[] used)
 		{
 
-			if(permutation.Count == nums.Count())
+			if (permutation.Count == nums.Count())
 			{
 				results.Add(new List<int>(permutation));
 				return;
 			}
 
-			for(int i = 0; i < nums.Length; i++)
+			for (int i = 0; i < nums.Length; i++)
 			{
 				if (!used[i])
 				{
@@ -4787,9 +5289,9 @@ namespace LeedCodeTest
 
 			//make a choice to include nums[i]
 			subset.AddLast(nums[i]);
-				
-			backtrackSubsets(i+1, nums, subset, result);
-				
+
+			backtrackSubsets(i + 1, nums, subset, result);
+
 			//undo the choice not include nums[i]
 			subset.RemoveLast();
 			backtrackSubsets(i + 1, nums, subset, result);
@@ -5152,7 +5654,7 @@ namespace LeedCodeTest
 				i++;
 			}
 
-			return set.Count <= 0 ? true : false;
+			return set.Count <= 1 ? true : false;
 
 		}
 
@@ -5358,7 +5860,7 @@ namespace LeedCodeTest
 				return;
 			}
 
-			for(int i = starti; i < candidates.Length; i++)
+			for (int i = starti; i < candidates.Length; i++)
 			{
 				if (i != starti && candidates[i] == candidates[i - 1])
 					continue;
@@ -5369,12 +5871,12 @@ namespace LeedCodeTest
 				//make a choice
 				comb.AddLast(candidates[i]);
 
-				backtrackCombinationsSumUnique(candidates, target - candidates[i], comb, i+1, result);
+				backtrackCombinationsSumUnique(candidates, target - candidates[i], comb, i + 1, result);
 
 				//undo the choice
 				comb.RemoveLast();
 			}
-			
+
 		}
 
 
@@ -5382,7 +5884,7 @@ namespace LeedCodeTest
 		{
 			List<int> res = new List<int>();
 
-			foreach(string word in words)
+			foreach (string word in words)
 			{
 				string test = word;
 				int max = 0;
@@ -5400,7 +5902,7 @@ namespace LeedCodeTest
 				res.Add(max);
 			}
 
-			
+
 			return res;
 		}
 
@@ -5432,7 +5934,7 @@ namespace LeedCodeTest
 				//make a choice
 				cur.AddLast(candidates[i]);
 
-				backtrackTheGivenNumber(i+1, candidates, cur, total + candidates[i].ToString(), target,  result);
+				backtrackTheGivenNumber(i + 1, candidates, cur, total + candidates[i].ToString(), target, result);
 
 				//undo the choice
 				cur.RemoveLast();
@@ -5459,7 +5961,7 @@ namespace LeedCodeTest
 
 		private static void backtrackCombinations(int i, int[] candidates, LinkedList<int> cur, int total, int target, List<IList<int>> result)
 		{
-			
+
 			if (total == target)
 			{
 				result.Add(new List<int>(cur));
@@ -5554,7 +6056,6 @@ namespace LeedCodeTest
 
 			for (int i = m - 1; i >= 0; --i)
 			{
-
 				for (int j = n - 1; j >= 0; --j)
 				{
 					int mul = (num1[i] - '0') * (num2[j] - '0');
@@ -5662,9 +6163,9 @@ namespace LeedCodeTest
 
 			double res = 1;
 
-			while(power > 1)
+			while (power > 1)
 			{
-				if(power %2 == 1)
+				if (power % 2 == 1)
 				{
 					res *= num;
 				}
@@ -5743,6 +6244,122 @@ namespace LeedCodeTest
 
 			return false;
 
+		}
+
+		public class Interval
+		{
+			public int start;
+			public int end;
+
+			public Interval() { }
+			public Interval(int _start, int _end)
+			{
+				start = _start;
+				end = _end;
+			}
+		}
+
+		/* Leetcode 759. Employee Free Time
+		 * 
+		 * 
+		 */
+		public IList<Interval> EmployeeFreeTime(IList<IList<Interval>> schedule)
+		{
+
+			List<Interval> res = new List<Interval>();
+			List<Interval> merge = new List<Interval>();
+
+
+			foreach (List<Interval> item in schedule)
+			{
+				foreach (Interval interval in item)
+					merge.Add(interval);
+			}
+
+			Interval[] temp = MergeInterval(merge.ToArray());
+
+			for (int i = 0; i < temp.Length; i++)
+			{
+				if (i + 1 < temp.Length)
+					res.Add(new Interval(temp[i].end, temp[i + 1].start));
+			}
+
+			return res;
+		}
+
+		public static Interval[] MergeInterval(Interval[] intervals)
+		{
+			if (intervals.Length == 1)
+			{
+				return intervals;
+			}
+
+			Array.Sort(intervals, (a, b) => { return a.start - b.start; });
+
+			List<Interval> output_arr = new List<Interval>();
+
+			Interval current_interval = intervals[0];
+
+			output_arr.Add(current_interval);
+
+			foreach (Interval interval in intervals)
+			{
+				int current_begin = current_interval.start;
+				int current_end = current_interval.end;
+				int next_begin = interval.start;
+				int next_end = interval.end;
+
+				if (current_end >= next_begin)
+				{
+					current_interval.end = Math.Max(current_end, next_end);
+				}
+				else
+				{
+					current_interval = interval;
+					output_arr.Add(current_interval);
+				}
+
+			}
+
+			return output_arr.ToArray();
+		}
+
+		/*Leetcode 415. Add Strings
+		 * 
+		 * 
+		 */
+		public string AddStrings(string num1, string num2)
+		{
+
+			StringBuilder sb = new StringBuilder();
+			int i = num1.Length - 1;
+			int j = num2.Length - 1;
+			int carry = 0;
+
+			while (i >= 0 || j >= 0)
+			{
+				int sum = carry;
+
+				if (i >= 0)
+				{
+					sum += num1[i--] - '0';
+				}
+
+				if (j >= 0)
+				{
+					sum += num2[j--] - '0';
+				}
+
+				sb.Append(sum % 10);
+				carry = sum / 10;
+			}
+
+			if (carry != 0)
+			{
+				sb.Append(carry);
+			}
+
+			return new string(sb.ToString().Reverse().ToArray());
 		}
 
 
@@ -5846,12 +6463,12 @@ namespace LeedCodeTest
 
 			int i = len - 1;
 
-			while( i - 1 >= 0)
+			while (i - 1 >= 0)
 			{
-				if(weights.ElementAt(i) == weights.ElementAt(i-1))
+				if (weights.ElementAt(i) == weights.ElementAt(i - 1))
 				{
 					weights.Remove(weights.ElementAt(i));
-					weights.Remove(weights.ElementAt(i-1));
+					weights.Remove(weights.ElementAt(i - 1));
 					i--;
 				}
 				else
@@ -6035,7 +6652,7 @@ namespace LeedCodeTest
 				{
 
 					result += sign * operand;
-					
+
 					sign = -1;
 					operand = 0;
 
@@ -6147,11 +6764,11 @@ namespace LeedCodeTest
 
 			string[][] seatMap = new string[N][];
 
-			for(int i = 0; i < N; i++)
+			for (int i = 0; i < N; i++)
 			{
 				int j = 0;
 				seatMap[i] = new string[10];
-				while(j < 8)
+				while (j < 8)
 				{
 					seatMap[i][j] = (i + 1).ToString() + Convert.ToChar(Convert.ToInt32('A') + j);
 					j++;
@@ -6167,8 +6784,8 @@ namespace LeedCodeTest
 			int[][] dp = new int[N][];
 			for (int i = 0; i < N; i++)
 			{
-				dp[i] = new int[3] { 3, 4, 3};
-				
+				dp[i] = new int[3] { 3, 4, 3 };
+
 			}
 
 
@@ -6193,7 +6810,7 @@ namespace LeedCodeTest
 							dp[i][1] = 0;
 						}
 
-						if ( r.Contains('H') || r.Contains('J') || r.Contains('K'))
+						if (r.Contains('H') || r.Contains('J') || r.Contains('K'))
 						{
 							dp[i][2] -= 1;
 						}
@@ -6204,9 +6821,9 @@ namespace LeedCodeTest
 
 			int res = 0;
 
-			foreach(int[] row in dp)
+			foreach (int[] row in dp)
 			{
-				foreach(int sn in row)
+				foreach (int sn in row)
 				{
 
 					if (sn >= 3)
@@ -6219,9 +6836,299 @@ namespace LeedCodeTest
 
 		}
 
+		/*
+         * Leetcode 212. Word Search II
+         * 
+         */
+		public static IList<string> FindWords(char[][] board, string[] words)
+		{
+			WordDictionary wd = new WordDictionary();
+
+			TrieNode root = wd.root;
+
+			foreach (string w in words)
+			{
+				wd.AddWord(w);
+			}
+
+			int ROWS = board.Length, COLS = board[0].Length;
+			List<string> res = new List<string>();
+			bool[,] visit = new bool[ROWS, COLS];
+
+			void dfs(int r, int c, TrieNode node, string word)
+			{
+				if (r < 0 || c < 0 || r == ROWS || c == COLS || visit[r, c] || !node.children.ContainsKey(board[r][c]))
+					return;
+
+				visit[r, c] = true;
+
+				node = node.children[board[r][c]];
+				word += board[r][c];
+				if (node.endOfWord && res.IndexOf(word) == -1)
+					res.Add(word);
+
+				dfs(r + 1, c, node, word);
+				dfs(r - 1, c, node, word);
+				dfs(r, c + 1, node, word);
+				dfs(r, c - 1, node, word);
+
+				visit[r, c] = false;
+
+			}
+
+			for (int r = 0; r < ROWS; r++)
+			{
+				for (int c = 0; c < COLS; c++)
+				{
+					dfs(r, c, root, "");
+				}
+			}
+
+			return res;
+		}
+
+		/*
+		 * Leetcode 230. Kth Smallest Element in a BST
+		 * Input: root = [3,1,4,null,2], k = 1
+		 * Output: 1
+		 */
+		public int KthSmallest(TreeNode root, int k)
+		{
+			List<int> res = new List<int>();
+
+			void dfs(TreeNode node)
+			{
+				if (node == null)
+					return;
+
+				dfs(node.left);
+				res.Add(node.val);
+				dfs(node.right);
+			}
+
+			dfs(root);
+			res.Sort();
+
+			return res.ElementAt(k - 1);
+
+
+		}
+
+		/*
+		 * Leetcode 235. Lowest Common Ancestor of a Binary Search Tree
+		 * 
+		 */
+		public TreeNode LowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q)
+		{
+			TreeNode cur = root;
+
+			while (cur != null)
+			{
+				if (p.val > cur.val && q.val > cur.val)
+					cur = cur.right;
+				else if (p.val < cur.val && q.val < cur.val)
+					cur = cur.left;
+				else
+					return cur;
+			}
+
+			return cur;
+
+		}
+
+
+		/*
+		 * Leetcode 236. Lowest Common Ancestor of a Binary Tree
+		 * 
+		 * 
+		 */
+		public TreeNode LowestCommonAncestor2(TreeNode root, TreeNode p, TreeNode q)
+		{
+			if (root == null)
+			{
+				return root;
+			}
+
+			if (root.val == p.val || root.val == q.val)
+			{
+				return root;
+			}
+
+			var left = LowestCommonAncestor(root.left, p, q);
+			var right = LowestCommonAncestor(root.right, p, q);
+
+			if (left != null && right != null)
+			{
+				return root;
+			}
+
+			if (left != null)
+			{
+				return left;
+			}
+
+			if (right != null)
+			{
+				return right;
+			}
+
+
+			return null;
+		}
+
+
+		// Redfin onsite interview
+		// # The function should return a boolean. 
+		// # `true`, if the target sentence can be created from the contents of the list. 
+		// # Otherwise, `false`.
+
+		// # Examples/test cases
+		// # listOfWords = ["cat", "cute", "is", "the", "cat"]
+		// # targetSentence = "The cat is cute"
+		// # Return true
+
+		// # listOfWords = ["the", "cat", "is", "cute"]
+		// # targetSentence = "the cute cat cat"
+		// # Return false 
+
+		// # listOfWords = ["the", "cat", "is", "cute"]
+		// # targetSentence = "The dog is cute"
+		// # Return false
+
+		public static bool CheckSentence(List<string> listOfWords, string targetSentence)
+		{
+			//First we want to generate a dictionary to save list of words, key = word, value = number of word
+			Dictionary<string, int> dit = new Dictionary<string, int>();
+
+			foreach (string word in listOfWords)
+			{
+				if (!dit.ContainsKey(word.ToLower()))
+				{
+					dit.Add(word.ToLower(), 1);
+				}
+				else
+				{
+					dit[word.ToLower()] += 1;
+				}
+
+			}
+
+			//We try to valid the sentence, we need to check the each word in sentence exist in the dictionary
+			// and also we need to match number
+			if (!string.IsNullOrEmpty(targetSentence))
+			{
+				string[] targets = targetSentence.Split(' ');
+
+				foreach (string target in targets)
+				{
+
+					//Console.WriteLine("target = " + target);
+
+					if (!dit.ContainsKey(target.ToLower())
+					  || (dit.ContainsKey(target.ToLower()) && dit[target.ToLower()] == 0))
+					{
+						return false;
+					}
+					else
+					{
+						dit[target.ToLower()] -= 1;
+					}
+
+				}
+
+				//finish all check
+				return true;
+			}
+
+			return false;
+		}
 
 		static void Main(string[] args)
 		{
+
+			DateTime enteredDate = DateTime.Parse("05-03-2021");
+
+			RemoveDuplicates("deeedbbcccbdaa", 3);
+
+			CalculateII("3+2*2");
+
+			LFUCache lfuCache = new LFUCache(2);
+
+			lfuCache.Put(1, 1);
+			lfuCache.Put(2, 2);
+			lfuCache.Get(1);
+			lfuCache.Put(3, 3);
+			lfuCache.Get(2);
+			lfuCache.Get(3);
+			lfuCache.Put(4, 4);
+			lfuCache.Get(1);
+			lfuCache.Get(3);
+			lfuCache.Get(4);
+
+
+
+			TimeMap tm = new TimeMap();
+
+			tm.Set("love", "high", 10);
+			tm.Set("love", "low", 20);
+			Console.WriteLine(tm.Get("love", 5) + "," + tm.Get("love", 10) + "," + tm.Get("love", 15) + "," + tm.Get("love", 20) + "," + tm.Get("love", 25));
+
+
+
+			char[] compress = new char[7] { 'a', 'a', 'b', 'b', 'c', 'c', 'c' };
+
+			Compress(compress);
+
+
+			int[][] overlaps = new int[][] {
+				new int[] { 1, 100},
+				new int[] { 11, 22},
+				new int[] { 1, 11},
+				new int[] { 2, 12},
+			};
+
+
+			EraseOverlapIntervals(overlaps);
+
+			GetSum(2, 3);
+
+			TopKFrequent(new int[] { 1, 1, 1, 2, 2, 3 }, 2);
+
+			String[] example1 = { "INSERT Code", "INSERT Signal", "DELETE", "UNDO" };
+			string[] example2 = { "CREATEDOCUMENT doc1", "INSERT Da", "COPY 0", "UNDO", "PASTE", "PASTE", "COPY 2", "PASTE", "PASTE", "DELETE", "SWITCHDOCUMENT doc2", "INSERT aaam", "REDO", "DELETE" };
+
+			//Console.WriteLine(TextEditor.getMyString(example1));
+			Console.WriteLine(TextEditor.getMyString(example2));
+
+			char[][] board = new char[][] {
+				new char[] { 'o','a','a','n', },
+				new char[] { 'e','t','a','e', },
+				new char[] { 'i','h','k','r', },
+				new char[] { 'i', 'f', 'l', 'v', }
+			};
+
+			WordDictionary wd = new WordDictionary();
+			string[] searchs = new string[4] { "oath", "pea", "eat", "rain" };
+
+			FindWords(board, searchs);
+
+			uint bitint = 43261596;
+			reverseBits(bitint);
+
+			List<Bit> lst = new List<Bit>();
+
+			lst.Add(new Bit { id = "a", price = 20, timestamp = 1 });
+			lst.Add(new Bit { id = "b", price = 30, timestamp = 2 });
+			lst.Add(new Bit { id = "c", price = 30, timestamp = 3 });
+			lst.Add(new Bit { id = "d", price = 40, timestamp = 4 });
+			lst.Add(new Bit { id = "e", price = 10, timestamp = 5 });
+
+
+
+			Console.WriteLine("Result 2: " + string.Join(",", getWinningBids(lst, 3)));
+
+			MinWindow("ADOBECODEBANC", "ABC");
+
 			int[][] edges = new int[][] {
 				new int[] { 0, 1},
 				new int[] { 0, 2},
@@ -6254,7 +7161,7 @@ namespace LeedCodeTest
 
 			FourSum(new int[] { 2, 2, 2, 2, 2 }, 8);
 
-			combinatonsOfTwoNumber(new int[] { 3, 5}, 334);
+			combinatonsOfTwoNumber(new int[] { 3, 5 }, 334);
 
 			NumberToWords(1234);
 
@@ -6281,7 +7188,10 @@ namespace LeedCodeTest
 
 			PalindromePartition("aab");
 
-			Console.WriteLine(canFormPalindrome("mmrrsso"));
+			Console.WriteLine(canFormPalindrome("geeksforgeeks"));
+
+			Console.WriteLine(canFormPalindrome("geeksoskeeg"));
+
 
 			Search(new int[] { 4, 5, 6, 7, 0, 1, 2 }, 0);
 
@@ -6361,7 +7271,7 @@ namespace LeedCodeTest
 
 			Dictionary<int, string> distributionTable = new Dictionary<int, string>();
 
-			foreach(string name in serverName)
+			foreach (string name in serverName)
 			{
 				string hs = name.GetHashCode().ToString();
 				int lastDigitalHashCode = Int16.Parse(hs.Substring(hs.Length - 1));
@@ -6377,10 +7287,10 @@ namespace LeedCodeTest
 			}
 
 			//.NET string object has a GetHashCode() function.It returns an integer. Convert it into a hex and then to an 8 characters long string.
-		   string hashCode = String.Format("{0:X}", "abcdef".GetHashCode());
+			string hashCode = String.Format("{0:X}", "abcdef".GetHashCode());
 
 
-		   Console.WriteLine(ComputeSha256Hash("Mahesh"));
+			Console.WriteLine(ComputeSha256Hash("Mahesh"));
 
 			int[][] obstacles = new int[][] {
 				new int[] { 0,0,0 },
@@ -6399,7 +7309,7 @@ namespace LeedCodeTest
 
 			MinPathSum(pathsum);
 
-			combineTheGivenNumber(new int[] { 12, 21, 121, 11, 1}, 121121);
+			combineTheGivenNumber(new int[] { 12, 21, 121, 11, 1 }, 121121);
 
 			MaxRepeating("ababcbabc", new string[] { "ab", "babc", "bca" });
 
@@ -6414,8 +7324,8 @@ namespace LeedCodeTest
 			getStonesWeight(weights);
 
 			int[][] intervals = new int[][] {
-				new int[] { 1, 2 },
-				new int[] { 3, 5 },
+				new int[] { 1, 3},
+				new int[] { 2, 5 },
 				new int[] { 6, 7 },
 				new int[] { 8, 10 },
 				new int[] { 12, 16 },
@@ -6455,11 +7365,11 @@ namespace LeedCodeTest
 
 			CombinationSum2(new int[] { 10, 1, 2, 7, 6, 1, 5 }, 8);
 
-			CombinationSum(new int[] { 2, 3, 6,7 }, 7);
+			CombinationSum(new int[] { 2, 3, 6, 7 }, 7);
 
 			CountAndSay(4);
 
-			NextPermutation(new int[] { 1, 5, 8, 4, 7, 6, 5, 3, 1});
+			NextPermutation(new int[] { 1, 5, 8, 4, 7, 6, 5, 3, 1 });
 
 			GenerateParenthesis(3);
 
@@ -6472,11 +7382,9 @@ namespace LeedCodeTest
 			CombinationSum3(3, 9);
 
 
-			processBracketsDuplicate("abc2[sad3[z]e]y");
+			decodeBracketsString("2[abc]3[cd]ef");
 
-			decodeBracketsString("abc2[sad3[z]e]y");
-
-			countDecreasingSubarrays(new int[] { 9,8,4,3 });
+			countDecreasingSubarrays(new int[] { 9, 8, 4, 3 });
 
 			convert_to_words("9923".ToCharArray());
 
@@ -6499,7 +7407,7 @@ namespace LeedCodeTest
 			int[] incnums = new int[] { 590, 692, 965, 697 };
 			makeIncreasing(incnums);
 
-			int[] numscomp = new int[] {-1, 0, 1, 2, 6, 7, 9};
+			int[] numscomp = new int[] { -1, 0, 1, 2, 6, 7, 9 };
 
 			IEnumerable comp = composeRanges(numscomp);
 
@@ -6516,8 +7424,8 @@ namespace LeedCodeTest
 
 			sb.getAverageTravelTime("station1", "station2");
 
-			int[][] path1 = new int[][] { 
-				new int[] { 2, 4, 3 }, 
+			int[][] path1 = new int[][] {
+				new int[] { 2, 4, 3 },
 				new int[] { 6, 5, 2 } };
 
 			bool isValidPath = HasValidPath(path1);
@@ -6538,7 +7446,7 @@ namespace LeedCodeTest
 			int dotIndex = email.IndexOf('.');
 
 			string newEmail = email;
-			while(dotIndex < atIndex)
+			while (dotIndex < atIndex)
 			{
 				newEmail = newEmail.Remove(dotIndex, 1);
 				dotIndex = newEmail.IndexOf('.');
@@ -6557,9 +7465,9 @@ namespace LeedCodeTest
 			char[] pair1 = new char[] { 'a', 'd', 'c' };
 
 			string str = "dznsxamwoj";
-			int[][] pairs = new int[][] 
-			{ 
-				new int[] { 1, 2 }, 
+			int[][] pairs = new int[][]
+			{
+				new int[] { 1, 2 },
 				new int[] { 3, 4 },
 				new int[] { 6, 5 },
 				new int[] { 8, 10 }
@@ -6611,7 +7519,7 @@ namespace LeedCodeTest
 
 			subarraysCountBySum(a, 3, 6);
 
-			bool[] bounded1= boundedRatio(a, 1, 3);
+			bool[] bounded1 = boundedRatio(a, 1, 3);
 
 			int[] a1 = new int[] { 1, 2, 3 };
 			int[] b1 = new int[] { 1, 2, 3 };
@@ -6636,7 +7544,7 @@ namespace LeedCodeTest
 
 			string[] crypt1 = { "AA", "BB", "AA" };
 			char[] char11 = { 'A', '1' };
-			char[] char12= { 'B', '0' };
+			char[] char12 = { 'B', '0' };
 			char[][] s2 = { char11, char12 };
 			isCryptSolution(crypt1, s2);
 
@@ -6677,9 +7585,9 @@ namespace LeedCodeTest
 			//Rob(new int[] { 1,2, 1, 1 });
 			robber(new int[] { 1, 2, 3, 1 });
 
-			int[] int1 = new int[] { 1, 2, 3};
-			int[] int2 = new int[] { 4, 5, 6};
-			int[] int3 = new int[] { 7, 8, 9};
+			int[] int1 = new int[] { 1, 2, 3 };
+			int[] int2 = new int[] { 4, 5, 6 };
+			int[] int3 = new int[] { 7, 8, 9 };
 
 			int[][] chart = new int[][] { int1, int2, int3 };
 
@@ -6696,7 +7604,7 @@ namespace LeedCodeTest
 			mergeStrings("dce", "cccbd");
 			mergeStrings("abcd", "efghi");
 
-			isZigzag(new int[] { 1,2,1,3,4 });
+			isZigzag(new int[] { 1, 2, 1, 3, 4 });
 			isZigzag(new int[] { 1, 2, 3, 4 });
 			isZigzag(new int[] { });
 
@@ -6752,7 +7660,7 @@ namespace LeedCodeTest
 			string[] words = new string[] { "Apple", "Melon", "Orange", "Watermelon" };
 
 			string[] parts = new string[] { "a", "mel", "lon", "el", "An" };
-			
+
 			BinaryTree bt = new BinaryTree();
 
 			bt.BuildTree(new int[] { 3, 9, 20, 15, 7 }, new int[] { 9, 3, 15, 20, 7 });
@@ -6844,7 +7752,7 @@ namespace LeedCodeTest
 			ListNode<int>.addTwoHugeNumbers(ln1, ln4);
 
 
-			int[] indices1 = { 1, 1, 2 };
+			int[] indices1 = { 1, 1, 1, 2, 2 };
 			RemoveDuplicates(indices1);
 
 			int[] indices2 = { 0, 1, 2, 2, 3, 0, 4, 2 };
@@ -6890,15 +7798,19 @@ namespace LeedCodeTest
 
 			ClimbStairs(5);
 
-			MaxProfit(new int[] { 3,2,6,5,0,3 });
+			MaxProfit(new int[] { 3, 2, 6, 5, 0, 3 });
 
-
-			ClassB cb = new ClassB();
+			ClassC cc = new ClassC();
+			ClassB cb = cc;
 			ClassA ca = cb;
+			
 			ca.foo(); // Prints A::foo
 			cb.foo(); // Prints B::foo
-			ca.bar(); // Prints B::bar
-			cb.bar(); // Prints B::bar
+			ca.bar(); // Prints C::bar
+			cb.bar(); // Prints C::bar
+
+			cc.foo();  // Prints C::foo
+			cc.bar();  // Prints C::bar
 
 			Entity.SetNextSerialNo(1000);
 			Entity e1 = new Entity();

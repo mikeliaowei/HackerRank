@@ -6,17 +6,10 @@ using System.Threading.Tasks;
 
 namespace RunningSumArray
 {
-    public class TrieNode
-    {
-        public Dictionary<char, TrieNode> children = new Dictionary<char, TrieNode>();
-        public bool word = false;
-        public TrieNode() { }
-    }
-
     public class WordDictionary
     {
 
-        TrieNode root;
+        public TrieNode root;
 
         /** Initialize your data structure here. */
         public WordDictionary()
@@ -35,7 +28,7 @@ namespace RunningSumArray
                 cur = cur.children[c];
             }
 
-            cur.word = true;
+            cur.endOfWord = true;
 
         }
 
@@ -70,10 +63,11 @@ namespace RunningSumArray
                     }
                 }
 
-                return cur.word;
+                return cur.endOfWord;
             }
 
         }
+
     }
 
 }
