@@ -14,6 +14,254 @@ namespace LeedCodeTest
 {
 	public class Program
 	{
+
+		public static double calculationRemainingPrinciple(
+							double out_principle,
+							double out_interest,
+							double month_payment,
+							double mon_interest_rate,
+							int nbMonth)
+		{
+
+			for (int i = 1; i <= nbMonth; i++)
+			{
+				double monthInterest = out_principle * mon_interest_rate;
+				if (monthInterest < 0)
+				{
+					monthInterest = 0;
+				}
+
+				double remain_out_interest = out_interest + monthInterest;
+				double remain_prin = 0;
+				double remain_interest = 0;
+
+
+				if (month_payment - remain_out_interest > 0)
+				{
+					remain_prin = out_principle - (month_payment - remain_out_interest);
+				}
+				else
+				{
+					remain_prin = out_principle;
+					remain_interest = remain_out_interest - month_payment;
+				}
+
+				out_interest = remain_interest;
+				out_principle = remain_prin;
+
+			}
+
+
+			return out_principle;
+		}
+
+		/*
+		 * Indeed screen interview product developer: sort two generaction job ids
+		 * ['aa', '1a', '10', '2']
+		 * Expect: '1a', 'aa', '2', '10'
+		 * 
+		 */
+		public static bool isFirstGenerationIds(string s)
+		{
+			foreach(char c in s)
+			{
+				if (!char.IsDigit(c) && !char.IsLetter(c))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		public static bool isSecondGenerationIds(string s)
+		{
+			return s.All(char.IsDigit);
+		}
+
+		public static List<string> sortedJobIds(string[] jobIds)
+		{
+			Array.Sort(jobIds);
+			jobIds = jobIds.ToList().Where(x => isFirstGenerationIds(x) || isSecondGenerationIds(x)).ToArray();
+			jobIds = jobIds.ToList().OrderBy(x => isSecondGenerationIds(x)).OrderBy(x => isFirstGenerationIds(x)).ToArray();
+
+			return jobIds.ToList();
+		}
+
+		/*
+		Indeed We are working on a security system for a badged-access room in our company's building.
+
+		Given an ordered list of employees who used their badge to enter or exit the room, write a function that returns two collections:
+
+		All employees who didn't use their badge while exiting the room - they recorded an enter without a matching exit. (All employees are required to leave the room before the log ends.)
+
+		All employees who didn't use their badge while entering the room - they recorded an exit without a matching enter. (The room is empty when the log begins.)
+
+		Each collection should contain no duplicates, regardless of how many times a given employee matches the criteria for belonging to it.
+
+		badge_records_1 = [
+		["Martha", "exit"],
+		["Paul", "enter"],
+		["Martha", "enter"],
+		["Steve", "enter"],
+		["Martha", "exit"],
+		["Jennifer", "enter"],
+		["Paul", "enter"],
+		["Curtis", "exit"],
+		["Curtis", "enter"],
+		["Paul", "exit"],
+		["Martha", "enter"],
+		["Martha", "exit"],
+		["Jennifer", "exit"],
+		["Paul", "enter"],
+		["Paul", "enter"],
+		["Martha", "exit"],
+		["Paul", "enter"],
+		["Paul", "enter"],
+		["Paul", "exit"],
+		["Paul", "exit"]
+		]
+
+		Expected output: ["Paul", "Curtis", "Steve"], ["Martha", "Curtis", "Paul"]
+
+		Other test cases:
+
+		badge_records_2 = [
+		["Paul", "enter"],
+		["Paul", "exit"],
+		]
+
+		Expected output: [], []
+
+		badge_records_3 = [
+		["Paul", "enter"],
+		["Paul", "enter"],
+		["Paul", "exit"],
+		["Paul", "exit"],
+		]
+
+		Expected output: ["Paul"], ["Paul"]
+
+		badge_records_4 = [
+		["Paul", "enter"],
+		["Paul", "exit"],
+		["Paul", "exit"],
+		["Paul", "enter"],
+		]
+
+		Expected output: ["Paul"], ["Paul"]
+
+		n: length of the badge records array
+
+		*/
+		private static List<List<string>> solveBadgesBreach(String[][] badge_records)
+		{
+			HashSet<string> entry = new HashSet<string>();
+			HashSet<string> entryBreach = new HashSet<string>();
+			HashSet<string> exitBreach = new HashSet<string>();
+
+			List<List<string>> res = new List<List<string>>();
+
+			foreach (string[] badge in badge_records)
+			{
+				if (badge[1].Equals("enter"))
+				{
+					if (entry.Contains(badge[0]))
+					{
+						exitBreach.Add(badge[0]);
+					}
+					else
+					{
+						entry.Add(badge[0]);
+					}
+				}
+				else
+				{
+					if (entry.Contains(badge[0]))
+					{
+						entry.Remove(badge[0]);
+					}
+					else
+					{
+						entryBreach.Add(badge[0]);
+					}
+				}
+			}
+
+			foreach (string p in entry) 
+				exitBreach.Add(p);
+
+			res.Add(exitBreach.ToList());
+			res.Add(entryBreach.ToList());
+
+			return res;
+		}
+		/*
+		 * Indeed question 
+		 * Find rectangles inside a 2-d array
+		 * Give a matrix of 1's and 0's. For example, matrix = [
+			["1","1","1","1","1"],
+			["1","1","0","0","1"],
+			["1","1","0","0","1"],
+			["1","1","1","1","1"]
+			]
+		 */
+		public static int NumRectangles(char[][] grid)
+		{
+			if (grid.Length == 0)
+				return 0;
+
+			int rows = grid.Length, cols = grid[0].Length;
+			bool[,] visited = new bool[rows, cols];
+
+			void dfs(int r, int c, int[] landCol)
+			{
+
+				if (r >= 0 && c >= 0 && r < rows && c < cols && grid[r][c] == '0' && !visited[r, c])
+				{
+					visited[r, c] = true;
+
+					int maxRow = Math.Max(landCol.ElementAt(0), r);
+					int maxCol = Math.Max(landCol.ElementAt(1), c);
+					landCol[0] = maxRow;
+					landCol[1] = maxCol;
+					
+					dfs(r, c + 1, landCol);
+					dfs(r, c - 1, landCol);
+					dfs(r + 1, c, landCol);
+					dfs(r - 1, c, landCol);
+				}
+			}
+
+
+			int isRectangle = 0;
+
+			for (int r = 0; r < rows; r++)
+			{
+
+				for (int c = 0; c < cols; c++)
+				{
+
+					if (grid[r][c] == '0' && !visited[r, c])
+					{
+						int[] landCol = new int[2] { 0, 0 };
+						isRectangle += 1;
+
+						dfs(r, c, landCol);
+
+						int height = landCol[0] - r + 1;
+						int width = landCol[1] - c + 1;
+						Console.WriteLine("width " + width + " height " + height);
+					}
+				}
+
+			}
+
+			return isRectangle;
+
+		}
+
+
 		/*
 		 * Leetcode 443. String Compression
 		 * Input: chars = ["a","a","b","b","c","c","c"]
@@ -1651,6 +1899,38 @@ namespace LeedCodeTest
 
 		}
 
+		/// <summary>
+		/// Leet code 680
+		/// </summary>
+		/// <param name="s"></param>
+		/// <returns></returns>
+		public static bool ValidPalindrome(string s)
+		{
+
+			int left = 0, right = s.Length - 1;
+
+			while (left < right)
+			{
+				if (s[left] == s[right])
+				{
+					left++;
+					right--;
+				}
+				else
+				{
+
+					string ls = s.Remove(left, 1);
+
+					string rs = s.Remove(right, 1);
+
+					return ls == new string(ls.Reverse().ToArray())
+						|| rs == new string(rs.Reverse().ToArray());
+				}
+			}
+
+			return true;
+		}
+
 		/*
 		 * Leetcode 647: Palindromic Substrings
 		 * Given a string s, return the number of palindromic substrings in it.
@@ -2605,7 +2885,7 @@ namespace LeedCodeTest
 		 * An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically.
 		 * You may assume all four edges of the grid are all surrounded by water.
 		 */
-		public int NumIslands(char[][] grid)
+		public static int NumIslands(char[][] grid)
 		{
 			if (grid.Length == 0)
 				return 0;
@@ -5952,14 +6232,32 @@ namespace LeedCodeTest
 		 */
 		public static IList<IList<int>> CombinationSum(int[] candidates, int target)
 		{
+			List<IList<int>> res = new List<IList<int>>();
+			LinkedList<int> comb = new LinkedList<int>();
 
-			List<IList<int>> result = new List<IList<int>>();
-			LinkedList<int> cur = new LinkedList<int>();
-			int total = 0;
+			dfs(0, comb, 0);
 
-			backtrackCombinations(0, candidates, cur, total, target, result);
+			void dfs(int i, LinkedList<int> cur, int total)
+			{
+				if (total == target)
+				{
+					res.Add(new List<int>(cur));
+					return;
+				}
 
-			return result;
+				if (i >= candidates.Length || total > target)
+					return;
+
+				//Add choice
+				cur.AddLast(candidates[i]);
+				dfs(i, cur, total + candidates[i]);
+
+				//Remove choice
+				cur.RemoveLast();
+				dfs(i + 1, cur, total);
+			}
+
+			return res;
 
 		}
 
@@ -7049,6 +7347,21 @@ namespace LeedCodeTest
 
 		static void Main(string[] args)
 		{
+			Console.WriteLine("1 month remaining = " + calculationRemainingPrinciple(100, 10, 10, 0.01, 1));
+			Console.WriteLine("2 month remaining = " + calculationRemainingPrinciple(100, 10, 10, 0.01, 2));
+			Console.WriteLine("1 month remaining = " + calculationRemainingPrinciple(100, 10, 10, 0.01, 3));
+
+			string[] jobIds = new string[] { "30", "aa", "10", "2", "1a",  "bc", "a!" };
+			sortedJobIds(jobIds);
+
+			string[][] badge_records_3 = new string[][] {
+				new string[] { "Paul", "enter"},
+				new string[] { "Paul", "enter"},
+				new string[] { "Martha", "exit"},
+				new string[] { "Paul", "exit"},
+			};
+
+			solveBadgesBreach(badge_records_3);
 
 			DateTime enteredDate = DateTime.Parse("05-03-2021");
 
@@ -7195,6 +7508,8 @@ namespace LeedCodeTest
 			Console.WriteLine(canFormPalindrome("geeksforgeeks"));
 
 			Console.WriteLine(canFormPalindrome("geeksoskeeg"));
+
+			ValidPalindrome("tebbem");
 
 
 			Search(new int[] { 4, 5, 6, 7, 0, 1, 2 }, 0);
@@ -7343,11 +7658,29 @@ namespace LeedCodeTest
 			Insert(intervals, newInterval);
 
 
+			char[][] rectangle = new char[][] {
+				new char[] { '1','1','1','1','1' },
+				new char[] { '1','1','0','0','1' },
+				new char[] { '1','1','0','0','1' },
+				new char[] { '1','1','1','1','1'}
+			};
+
+			char[][] rectangle1 = new char[][] {
+				new char[] { '0','1','1','1','1' },
+				new char[] { '1','1','0','0','1' },
+				new char[] { '0','1','0','0','1' },
+				new char[] { '0','1','1','1','1'},
+				new char[] { '1','0','1','1','1'}
+			};
+
+			NumRectangles(rectangle);
+			NumRectangles(rectangle1);
+
 			char[][] islands = new char[][] {
 				new char[] { '1','1','1','1','0' },
 				new char[] { '1','1','0','1','0' },
 				new char[] { '1','1','0','1','0' },
-				new char[] { '0', '0', '0', '0', '0'}
+				new char[] { '0','0','0','0','0'}
 			};
 
 			NumIslands2(islands);

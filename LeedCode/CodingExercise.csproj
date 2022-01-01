@@ -54,7 +54,7 @@
     <Compile Include="methodExample.cs" />
     <Compile Include="ParallelExample.cs" />
     <Compile Include="PointSystem.cs" />
-    <Compile Include="DataStructures.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RandomSentenceGeneration.cs" />
     <Compile Include="SamplesDelegate.cs" />
